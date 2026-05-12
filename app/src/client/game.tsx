@@ -2,6 +2,7 @@ import './index.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { useQueue } from './hooks/useQueue';
 import { QueueCarousel } from './components/QueueCarousel';
 import { CommentsView } from './components/CommentsView';
@@ -94,13 +95,16 @@ export const App = () => {
       {/* Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-reddit-bg px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
         <div className="mx-auto flex max-w-2xl gap-2">
-          <button className="flex-1 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600">
+          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600">
+            <CheckCircle2 className="w-4 h-4" />
             Approve
           </button>
-          <button className="flex-1 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600">
+          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600">
+            <AlertCircle className="w-4 h-4" />
             Warn
           </button>
-          <button className="flex-1 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600">
+          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600">
+            <XCircle className="w-4 h-4" />
             Remove
           </button>
         </div>

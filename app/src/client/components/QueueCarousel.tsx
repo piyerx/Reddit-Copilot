@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ModQueueItem } from '../../shared/api';
 
 interface QueueCarouselProps {
@@ -58,7 +59,8 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
       {item.reports.length > 0 && (
         <div className="border-t border-gray-200 bg-orange-50 px-5 py-4 dark:border-gray-700 dark:bg-gray-900/50">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-700 dark:text-orange-400">
-            ⚠ Flagged ({item.reportCount})
+            <AlertTriangle className="w-4 h-4" />
+            Flagged ({item.reportCount})
           </p>
           <ul className="space-y-1">
             {item.reports.map((report, idx) => (
@@ -76,9 +78,10 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
           <button
             onClick={onPrevious}
             disabled={!hasPrevious}
-            className="rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="flex items-center justify-center gap-1.5 rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            ← Prev
+            <ChevronLeft className="w-3.5 h-3.5" />
+            Prev
           </button>
           <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
             {currentIndex + 1} / {total}
@@ -86,9 +89,10 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
           <button
             onClick={onNext}
             disabled={!hasNext}
-            className="rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="flex items-center justify-center gap-1.5 rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Next →
+            Next
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

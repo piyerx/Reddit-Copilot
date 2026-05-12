@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bot, AlertTriangle, TrendingUp, Zap } from 'lucide-react';
 import type { AIAnalysis } from '../../shared/api';
 
 interface AISummaryProps {
@@ -21,8 +22,9 @@ export const AISummary: React.FC<AISummaryProps> = ({
   return (
     <div className="rounded-lg border border-blue-300 bg-blue-50 shadow-sm dark:border-blue-900 dark:bg-blue-950/30">
       <div className="border-b border-blue-200 px-5 py-3 dark:border-blue-900">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-          🤖 CoPilot Analysis
+        <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+          <Bot className="w-4 h-4" />
+          CoPilot Analysis
         </h3>
       </div>
       <div className="px-5 py-4">
@@ -42,7 +44,8 @@ export const AISummary: React.FC<AISummaryProps> = ({
             {/* Issues */}
             {analysis.violatedRules.length > 0 && (
               <div className="mb-4 rounded bg-orange-100 p-3 dark:bg-orange-900/20">
-                <p className="mb-2 text-xs font-bold uppercase text-orange-700 dark:text-orange-300">
+                <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-orange-700 dark:text-orange-300">
+                  <AlertTriangle className="w-4 h-4" />
                   Potential Issues
                 </p>
                 <ul className="space-y-1">
@@ -58,7 +61,10 @@ export const AISummary: React.FC<AISummaryProps> = ({
             {/* Confidence Meter */}
             <div className="mb-4 rounded bg-white p-3 dark:bg-blue-900/20">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">CONFIDENCE</span>
+                <span className="flex items-center gap-1.5 text-xs font-bold text-blue-700 dark:text-blue-300">
+                  <TrendingUp className="w-4 h-4" />
+                  CONFIDENCE
+                </span>
                 <span className="text-sm font-bold text-blue-900 dark:text-blue-100">{analysis.confidence}%</span>
               </div>
               <div className="h-2 w-full rounded-full bg-gray-300 dark:bg-gray-700">
@@ -71,7 +77,10 @@ export const AISummary: React.FC<AISummaryProps> = ({
 
             {/* Suggested Action */}
             <div className="mb-4 flex items-center gap-3">
-              <span className="text-xs font-bold text-blue-700 dark:text-blue-300">ACTION:</span>
+              <span className="flex items-center gap-1.5 text-xs font-bold text-blue-700 dark:text-blue-300">
+                <Zap className="w-4 h-4" />
+                ACTION:
+              </span>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-bold transition-all ${
                   actionColors[analysis.suggestedAction]

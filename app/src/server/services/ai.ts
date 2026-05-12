@@ -1,8 +1,9 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ModQueueItem, ModComment, AIAnalysis } from '../../shared/api';
 
 /**
  * AI Service for moderation analysis using Gemini or fallback.
- * Uses a simple prompt-based approach for deterministic outputs.
+ * Uses structured prompts for reliable moderation recommendations.
  */
 
 interface AIServiceConfig {
@@ -12,6 +13,7 @@ interface AIServiceConfig {
 
 export class AIService {
   private config: AIServiceConfig;
+  private geminiClient: GoogleGenerativeAI | null = null;
 
   constructor(config: AIServiceConfig = { provider: 'demo' }) {
     this.config = config;
@@ -20,10 +22,13 @@ export class AIService {
       if (process.env.GOOGLE_API_KEY) {
         this.config.provider = 'gemini';
         this.config.apiKey = process.env.GOOGLE_API_KEY;
+        this.geminiClient = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
       } else if (process.env.OPENAI_API_KEY) {
         this.config.provider = 'openai';
         this.config.apiKey = process.env.OPENAI_API_KEY;
       }
+    } else if (config.provider === 'gemini' && config.apiKey) {
+      this.geminiClient = new GoogleGenerativeAI(config.apiKey);
     }
   }
 
@@ -143,29 +148,118 @@ export class AIService {
   }
 
   /**
-   * Placeholder for Gemini integration.
+   * Analyze with Gemini API - sends structured prompt for moderation analysis.
    */
   private async analyzeWithGemini(
     post: ModQueueItem,
     comments: ModComment[],
     subredditRules?: string[]
   ): Promise<AIAnalysis> {
-    // TODO: Implement Gemini API integration
-    // For now, return demo analysis as fallback
-    return this.generateDemoAnalysis(post, comments);
+    if (!this.geminiClient) {
+      console.warn('Gemini client not initialized, falling back to demo');
+      return this.generateDemoAnalysis(post, comments);
+    }
+
+    try {
+      const model = this.geminiClient.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+      });
+
+      const commentsText =
+        comments.length > 0
+          ? comments.map((c) => `- u/${c.author}: ${c.body}`).join('\n')
+          : 'No comments';
+
+      const rulesText = subredditRules?.length
+        ? subredditRules.join('\n')
+        : 'No specific rules provided';
+
+      const prompt = `You are a Reddit moderation assistant. Analyze this post and determine if it violates subreddit rules.
+
+**Subreddit Rules:**
+${rulesText}
+
+**Post Details:**
+- Title: ${post.title}
+- Author: u/${post.author}
+- Body: ${post.body || '[no body text]'}
+- Upvotes: ${post.score}
+- Reports: ${post.reportCount > 0 ? post.reports.join(', ') : 'None'}
+
+**Top Comments:**
+${commentsText}
+
+**Your task:**
+1. Identify any rule violations (be specific)
+2. Rate confidence as a percentage (0-100)
+3. Suggest an action: approve, review, warn, or remove
+4. Provide brief reasoning
+
+**Respond in this exact JSON format only:**
+{
+  "summary": "one-sentence summary of the post",
+  "violatedRules": ["rule1", "rule2"],
+  "confidence": 65,
+  "suggestedAction": "remove",
+  "reasoning": "brief explanation of the decision"
+}`;
+
+      const result = await model.generateContent(prompt);
+      const responseText =
+        result.response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      // Extract JSON from response (handle markdown code blocks)
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.warn('Could not parse Gemini response, falling back to demo');
+        return this.generateDemoAnalysis(post, comments);
+      }
+
+      const analysis = JSON.parse(jsonMatch[0]);
+
+      // Validate and sanitize response
+      return {
+        summary: String(analysis.summary || '').slice(0, 200),
+        violatedRules: Array.isArray(analysis.violatedRules)
+          ? analysis.violatedRules.map((r: string) => String(r).slice(0, 50))
+          : [],
+        confidence: Math.max(
+          0,
+          Math.min(100, parseInt(String(analysis.confidence)) || 50)
+        ),
+        suggestedAction: [
+          'approve',
+          'review',
+          'warn',
+          'remove',
+          'escalate',
+        ].includes(String(analysis.suggestedAction))
+          ? (analysis.suggestedAction as
+              | 'approve'
+              | 'review'
+              | 'warn'
+              | 'remove'
+              | 'escalate')
+          : 'review',
+        reasoning: String(analysis.reasoning || '').slice(0, 300),
+      };
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      return this.generateDemoAnalysis(post, comments);
+    }
   }
 
   /**
    * Placeholder for OpenAI integration.
    */
   private async analyzeWithOpenAI(
-    post: ModQueueItem,
-    comments: ModComment[],
-    subredditRules?: string[]
+    _post: ModQueueItem,
+    _comments: ModComment[],
+    _subredditRules?: string[]
   ): Promise<AIAnalysis> {
     // TODO: Implement OpenAI API integration
     // For now, return demo analysis as fallback
-    return this.generateDemoAnalysis(post, comments);
+    return this.generateDemoAnalysis(_post, _comments);
   }
 
   /**
@@ -177,22 +271,51 @@ export class AIService {
   }
 
   /**
-   * Placeholder for Gemini removal reason generation.
+   * Generate removal reason with Gemini API.
    */
   private async generateReasonWithGemini(
     rules: string[],
     postTitle: string,
     violatedRules: string[]
   ): Promise<string> {
-    return this.generateDemoRemovalReason(violatedRules);
+    if (!this.geminiClient) {
+      return this.generateDemoRemovalReason(violatedRules);
+    }
+
+    try {
+      const model = this.geminiClient.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+      });
+
+      const prompt = `You are a Reddit moderator. Generate a professional, concise removal message.
+
+**Post Title:** ${postTitle}
+
+**Subreddit Rules:**
+${rules.join('\n')}
+
+**Violated Rules:**
+${violatedRules.join('\n')}
+
+Write a friendly but firm removal notice (2-3 sentences) that explains why the post was removed and encourages the user to revise and resubmit. Be respectful but clear.`;
+
+      const result = await model.generateContent(prompt);
+      const reason =
+        result.response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      return reason.slice(0, 500);
+    } catch (error) {
+      console.error('Gemini removal reason generation error:', error);
+      return this.generateDemoRemovalReason(violatedRules);
+    }
   }
 
   /**
    * Placeholder for OpenAI removal reason generation.
    */
   private async generateReasonWithOpenAI(
-    rules: string[],
-    postTitle: string,
+    _rules: string[],
+    _postTitle: string,
     violatedRules: string[]
   ): Promise<string> {
     return this.generateDemoRemovalReason(violatedRules);

@@ -71,3 +71,16 @@ export type RemovalReasonResponse = {
   reason: string;
   politeTone: string;
 };
+
+// Subreddit Rules Types
+export type SubredditRule = {
+  id: string;
+  title: string;
+  description: string;
+  priority: number;
+};
+
+export type RulesResponse = {
+  type: 'rules';
+  rules: SubredditRule[];
+};

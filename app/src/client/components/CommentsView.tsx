@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageSquare, TrendingUp } from 'lucide-react';
 import type { ModComment } from '../../shared/api';
 
 interface CommentsViewProps {
@@ -33,7 +34,8 @@ export const CommentsView: React.FC<CommentsViewProps> = ({
   return (
     <div className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
       <div className="border-b border-gray-200 px-5 py-3 dark:border-gray-700">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+        <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+          <MessageSquare className="w-4 h-4" />
           Top Comments • {comments.length}
         </h3>
       </div>
@@ -47,8 +49,9 @@ export const CommentsView: React.FC<CommentsViewProps> = ({
               <span className="text-xs font-semibold text-gray-900 dark:text-gray-200">
                 u/{comment.author}
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                ↑ {comment.score}
+              <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <TrendingUp className="w-3 h-3" />
+                {comment.score}
               </span>
             </div>
             <p className="text-xs leading-relaxed text-gray-700 line-clamp-3 dark:text-gray-300">

@@ -21,6 +21,7 @@
   "dependencies": {
     "@devvit/start": "0.12.23",
     "@devvit/web": "0.12.23",
+    "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.19.9",
     "clsx": "2.1.1",
     "devvit": "0.12.23",

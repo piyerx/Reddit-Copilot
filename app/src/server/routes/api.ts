@@ -10,6 +10,8 @@ import type {
   ModComment,
   AIAnalysisResponse,
   RemovalReasonResponse,
+  SubredditRule,
+  RulesResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 
@@ -102,39 +104,36 @@ api.post('/decrement', async (c) => {
 // Moderation Queue Endpoints
 api.get('/modqueue', async (c) => {
   try {
-    // For now, return mock modqueue data since Devvit API may have limitations
-    // In production, this would fetch from Reddit's modqueue
-    const mockItems: ModQueueItem[] = [
-      {
-        id: 't3_mock1',
-        postId: 't3_mock1',
-        title: 'Example flagged post - Low effort content',
-        author: 'testuser1',
-        body: 'This is a test post that violates rule 2.',
-        reports: ['Rule 2: Low effort content', 'Spam'],
-        reportCount: 2,
-        score: 5,
-        numComments: 3,
-        createdAt: Date.now() - 3600000,
-      },
-      {
-        id: 't3_mock2',
-        postId: 't3_mock2',
-        title: 'Another flagged post - Potential repost',
-        author: 'testuser2',
-        body: 'This appears to be a duplicate of a previous post.',
-        reports: ['Rule 5: Repost'],
-        reportCount: 1,
-        score: 12,
-        numComments: 8,
-        createdAt: Date.now() - 7200000,
-      },
-    ];
+    // Fetch real modqueue from current subreddit
+    const subreddit = await reddit.getCurrentSubreddit();
+    const modQueueListing = await subreddit.getModQueue({ limit: 25, type: 'all' });
+    const modQueuePosts = await modQueueListing.all();
+
+    const items: ModQueueItem[] = await Promise.all(
+      modQueuePosts.map(async (item) => {
+        const reports = item.reports?.map((r) => r[0]) || [];
+        const numComments = 'numComments' in item ? (item.numComments as number) : 0;
+        const createdAt = 'createdAt' in item ? (item.createdAt as Date).getTime() : Date.now();
+
+        return {
+          id: item.id,
+          postId: item.id,
+          title: 'title' in item ? (item.title as string) : 'Comment by ' + item.author?.name,
+          author: item.author?.name || 'deleted',
+          body: 'body' in item ? (item.body as string) : (item.text as string) || '',
+          reports: reports,
+          reportCount: reports.length,
+          score: item.score || 0,
+          numComments: numComments,
+          createdAt: createdAt,
+        } as ModQueueItem;
+      })
+    );
 
     return c.json<ModQueueResponse>({
       type: 'modqueue',
-      items: mockItems,
-      total: mockItems.length,
+      items,
+      total: items.length,
     });
   } catch (error) {
     console.error('Error fetching modqueue:', error);
@@ -142,6 +141,34 @@ api.get('/modqueue', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to fetch modqueue',
+      },
+      500
+    );
+  }
+});
+
+api.get('/rules', async (c) => {
+  try {
+    const subredditName = await reddit.getCurrentSubredditName();
+    const rules = await reddit.getRules(subredditName);
+
+    const formattedRules: SubredditRule[] = rules.map((rule) => ({
+      id: rule.id,
+      title: rule.title,
+      description: rule.description || '',
+      priority: rule.priority || 0,
+    }));
+
+    return c.json<RulesResponse>({
+      type: 'rules',
+      rules: formattedRules,
+    });
+  } catch (error) {
+    console.error('Error fetching rules:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch rules',
       },
       500
     );
@@ -159,42 +186,49 @@ api.get('/queue-item/:postId', async (c) => {
   }
 
   try {
-    // Return mock data for now
-    // In production, this would fetch real post data from Reddit
-    const mockItem: ModQueueItem = {
-      id: postId,
-      postId: postId,
-      title: 'Example Post Title',
-      author: 'example_user',
-      body: 'This is the body of the post with full content.',
-      reports: ['Rule 2: Low effort', 'Spam'],
-      reportCount: 2,
-      score: 15,
-      numComments: 5,
-      createdAt: Date.now() - 3600000,
+    // Fetch real post data from Reddit
+    const post = await reddit.getPostById(postId);
+    if (!post) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'Post not found' },
+        404
+      );
+    }
+
+    const reports = post.reports?.map((r) => r[0]) || [];
+    const item: ModQueueItem = {
+      id: post.id,
+      postId: post.id,
+      title: post.title,
+      author: post.author?.name || 'deleted',
+      body: post.body || '',
+      reports: reports,
+      reportCount: reports.length,
+      score: post.score || 0,
+      numComments: post.numComments || 0,
+      createdAt: post.createdAt?.getTime() || Date.now(),
     };
 
-    const mockComments: ModComment[] = [
-      {
-        id: 'c1',
-        author: 'commenter1',
-        body: 'This comment violates the rules.',
-        score: 3,
-        createdAt: Date.now() - 1800000,
-      },
-      {
-        id: 'c2',
-        author: 'commenter2',
-        body: 'Another comment with context.',
-        score: 7,
-        createdAt: Date.now() - 900000,
-      },
-    ];
+    // Fetch top comments
+    const commentsListing = await reddit.getComments({
+      postId: postId,
+      limit: 5,
+      pageSize: 5,
+    });
+    const allComments = await commentsListing.all();
+
+    const comments: ModComment[] = allComments.map((comment) => ({
+      id: comment.id,
+      author: comment.author?.name || 'deleted',
+      body: comment.body || '',
+      score: comment.score || 0,
+      createdAt: comment.createdAt?.getTime() || Date.now(),
+    }));
 
     return c.json<QueueItemResponse>({
       type: 'queue-item',
-      item: mockItem,
-      comments: mockComments,
+      item,
+      comments,
     });
   } catch (error) {
     console.error(`Error fetching queue item ${postId}:`, error);
@@ -223,7 +257,17 @@ api.post('/analyze', async (c) => {
       );
     }
 
-    const analysis = await aiService.analyzePost(item, comments || []);
+    // Fetch real subreddit rules for context
+    let subredditRules: string[] = [];
+    try {
+      const subredditName = await reddit.getCurrentSubredditName();
+      const rules = await reddit.getRules(subredditName);
+      subredditRules = rules.map((rule) => `${rule.title}: ${rule.description}`);
+    } catch (ruleError) {
+      console.warn('Could not fetch subreddit rules:', ruleError);
+    }
+
+    const analysis = await aiService.analyzePost(item, comments || [], subredditRules);
 
     return c.json<AIAnalysisResponse>({
       type: 'ai-analysis',
@@ -256,8 +300,18 @@ api.post('/removal-reason', async (c) => {
       );
     }
 
+    // Fetch real subreddit rules for removal reason context
+    let subredditRules: string[] = [];
+    try {
+      const subredditName = await reddit.getCurrentSubredditName();
+      const rules = await reddit.getRules(subredditName);
+      subredditRules = rules.map((rule) => `${rule.title}: ${rule.description}`);
+    } catch (ruleError) {
+      console.warn('Could not fetch subreddit rules:', ruleError);
+    }
+
     const reason = await aiService.generateRemovalReason(
-      [],
+      subredditRules,
       postTitle || 'Post',
       violatedRules
     );
