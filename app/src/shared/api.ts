@@ -50,3 +50,24 @@ export type ModComment = {
   score: number;
   createdAt: number;
 };
+
+// AI Analysis Types
+export type AIAnalysis = {
+  summary: string;
+  violatedRules: string[];
+  confidence: number;
+  suggestedAction: 'approve' | 'remove' | 'warn' | 'escalate' | 'review';
+  reasoning: string;
+};
+
+export type AIAnalysisResponse = {
+  type: 'ai-analysis';
+  analysis: AIAnalysis;
+  cached: boolean;
+};
+
+export type RemovalReasonResponse = {
+  type: 'removal-reason';
+  reason: string;
+  politeTone: string;
+};

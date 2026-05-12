@@ -4,13 +4,17 @@ import type {
   QueueItemResponse,
   ModQueueItem,
   ModComment,
+  AIAnalysis,
+  AIAnalysisResponse,
 } from '../../shared/api';
 
 interface QueueState {
   items: ModQueueItem[];
   currentItem: ModQueueItem | null;
   comments: ModComment[];
+  analysis: AIAnalysis | null;
   loading: boolean;
+  analysisLoading: boolean;
   error: string | null;
   currentIndex: number;
 }
@@ -20,7 +24,9 @@ export const useQueue = () => {
     items: [],
     currentItem: null,
     comments: [],
+    analysis: null,
     loading: true,
+    analysisLoading: false,
     error: null,
     currentIndex: 0,
   });
@@ -69,7 +75,11 @@ export const useQueue = () => {
         currentItem: data.item,
         comments: data.comments,
         loading: false,
+        analysis: null,
       }));
+
+      // Load AI analysis
+      void loadAnalysis(data.item, data.comments);
     } catch (err) {
       console.error(`Failed to load item ${postId}`, err);
       setState((prev) => ({
@@ -79,6 +89,36 @@ export const useQueue = () => {
       }));
     }
   }, []);
+
+  const loadAnalysis = useCallback(
+    async (item: ModQueueItem, comments: ModComment[]) => {
+      try {
+        setState((prev) => ({ ...prev, analysisLoading: true }));
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item, comments }),
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: AIAnalysisResponse = await res.json();
+        if (data.type !== 'ai-analysis') throw new Error('Unexpected response');
+
+        setState((prev) => ({
+          ...prev,
+          analysis: data.analysis,
+          analysisLoading: false,
+        }));
+      } catch (err) {
+        console.error('Failed to load analysis', err);
+        setState((prev) => ({
+          ...prev,
+          analysisLoading: false,
+        }));
+      }
+    },
+    []
+  );
 
   const goToNext = useCallback(() => {
     setState((prev) => {
@@ -105,6 +145,7 @@ export const useQueue = () => {
   return {
     ...state,
     loadItem,
+    loadAnalysis,
     goToNext,
     goToPrevious,
     hasNextItem: state.currentIndex < state.items.length - 1,

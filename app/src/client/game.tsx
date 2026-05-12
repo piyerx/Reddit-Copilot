@@ -12,7 +12,9 @@ export const App = () => {
     items,
     currentItem,
     comments,
+    analysis,
     loading,
+    analysisLoading,
     error,
     currentIndex,
     goToNext,
@@ -83,7 +85,7 @@ export const App = () => {
         />
 
         {/* Moderation Analysis */}
-        <AISummary loading={loading} />
+        <AISummary analysis={analysis} loading={analysisLoading} />
 
         {/* Comments */}
         <CommentsView comments={comments} loading={loading} />

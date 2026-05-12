@@ -8,7 +8,10 @@ import type {
   QueueItemResponse,
   ModQueueItem,
   ModComment,
+  AIAnalysisResponse,
+  RemovalReasonResponse,
 } from '../../shared/api';
+import { aiService } from '../services/ai';
 
 type ErrorResponse = {
   status: 'error';
@@ -199,6 +202,77 @@ api.get('/queue-item/:postId', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to fetch queue item',
+      },
+      500
+    );
+  }
+});
+
+// AI Analysis Endpoints
+api.post('/analyze', async (c) => {
+  try {
+    const { item, comments } = await c.req.json<{
+      item: ModQueueItem;
+      comments: ModComment[];
+    }>();
+
+    if (!item) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'item is required' },
+        400
+      );
+    }
+
+    const analysis = await aiService.analyzePost(item, comments || []);
+
+    return c.json<AIAnalysisResponse>({
+      type: 'ai-analysis',
+      analysis,
+      cached: false,
+    });
+  } catch (error) {
+    console.error('Error analyzing post:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to analyze post',
+      },
+      500
+    );
+  }
+});
+
+api.post('/removal-reason', async (c) => {
+  try {
+    const { violatedRules, postTitle } = await c.req.json<{
+      violatedRules: string[];
+      postTitle: string;
+    }>();
+
+    if (!violatedRules || violatedRules.length === 0) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'violatedRules is required' },
+        400
+      );
+    }
+
+    const reason = await aiService.generateRemovalReason(
+      [],
+      postTitle || 'Post',
+      violatedRules
+    );
+
+    return c.json<RemovalReasonResponse>({
+      type: 'removal-reason',
+      reason,
+      politeTone: reason,
+    });
+  } catch (error) {
+    console.error('Error generating removal reason:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to generate removal reason',
       },
       500
     );
