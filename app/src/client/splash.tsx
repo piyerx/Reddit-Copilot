@@ -15,7 +15,7 @@ export const Splash = () => {
       />
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-          Hey {context.username ?? 'user'} 👋
+          Reddit Mod Copilot
         </h1>
         <p className="text-base text-center text-gray-600 dark:text-gray-300">
           Edit{' '}
