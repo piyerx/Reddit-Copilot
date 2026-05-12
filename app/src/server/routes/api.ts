@@ -109,26 +109,24 @@ api.get('/modqueue', async (c) => {
     const modQueueListing = await subreddit.getModQueue({ limit: 25, type: 'all' });
     const modQueuePosts = await modQueueListing.all();
 
-    const items: ModQueueItem[] = await Promise.all(
-      modQueuePosts.map(async (item) => {
-        const reports = item.reports?.map((r) => r[0]) || [];
-        const numComments = 'numComments' in item ? (item.numComments as number) : 0;
-        const createdAt = 'createdAt' in item ? (item.createdAt as Date).getTime() : Date.now();
+    const items: ModQueueItem[] = modQueuePosts.map((item) => {
+      const isPost = 'title' in item;
+      const reports: string[] = [];
+      const authorName = (item as any).authorName || 'deleted';
 
-        return {
-          id: item.id,
-          postId: item.id,
-          title: 'title' in item ? (item.title as string) : 'Comment by ' + item.author?.name,
-          author: item.author?.name || 'deleted',
-          body: 'body' in item ? (item.body as string) : (item.text as string) || '',
-          reports: reports,
-          reportCount: reports.length,
-          score: item.score || 0,
-          numComments: numComments,
-          createdAt: createdAt,
-        } as ModQueueItem;
-      })
-    );
+      return {
+        id: item.id || '',
+        postId: item.id || '',
+        title: isPost ? ((item as any).title || 'Post') : `Comment by ${authorName}`,
+        author: authorName,
+        body: ((item as any).body || ''),
+        reports: reports,
+        reportCount: reports.length,
+        score: item.score || 0,
+        numComments: isPost ? ((item as any).numComments || 0) : 0,
+        createdAt: item.createdAt instanceof Date ? item.createdAt.getTime() : Date.now(),
+      } as ModQueueItem;
+    });
 
     return c.json<ModQueueResponse>({
       type: 'modqueue',
@@ -149,14 +147,15 @@ api.get('/modqueue', async (c) => {
 
 api.get('/rules', async (c) => {
   try {
-    const subredditName = await reddit.getCurrentSubredditName();
+    const subreddit = await reddit.getCurrentSubreddit();
+    const subredditName = subreddit.name;
     const rules = await reddit.getRules(subredditName);
 
-    const formattedRules: SubredditRule[] = rules.map((rule) => ({
-      id: rule.id,
-      title: rule.title,
-      description: rule.description || '',
-      priority: rule.priority || 0,
+    const formattedRules: SubredditRule[] = rules.map((rule, index) => ({
+      id: `rule_${index}`,
+      title: (rule as any).shortName || '',
+      description: (rule as any).description || '',
+      priority: (rule as any).priority || index,
     }));
 
     return c.json<RulesResponse>({
@@ -195,34 +194,35 @@ api.get('/queue-item/:postId', async (c) => {
       );
     }
 
-    const reports = post.reports?.map((r) => r[0]) || [];
+    const reports: string[] = [];
     const item: ModQueueItem = {
-      id: post.id,
-      postId: post.id,
-      title: post.title,
-      author: post.author?.name || 'deleted',
-      body: post.body || '',
+      id: post.id || '',
+      postId: post.id || '',
+      title: (post as any).title || 'Post',
+      author: (post as any).authorName || 'deleted',
+      body: (post as any).body || '',
       reports: reports,
       reportCount: reports.length,
       score: post.score || 0,
-      numComments: post.numComments || 0,
-      createdAt: post.createdAt?.getTime() || Date.now(),
+      numComments: (post as any).numComments || 0,
+      createdAt: post.createdAt instanceof Date ? post.createdAt.getTime() : Date.now(),
     };
 
     // Fetch top comments
+    const properPostId = postId.startsWith('t3_') ? (postId as `t3_${string}`) : (`t3_${postId}` as const);
     const commentsListing = await reddit.getComments({
-      postId: postId,
+      postId: properPostId,
       limit: 5,
       pageSize: 5,
     });
     const allComments = await commentsListing.all();
 
     const comments: ModComment[] = allComments.map((comment) => ({
-      id: comment.id,
-      author: comment.author?.name || 'deleted',
-      body: comment.body || '',
+      id: comment.id || '',
+      author: (comment as any).authorName || 'deleted',
+      body: (comment as any).body || '',
       score: comment.score || 0,
-      createdAt: comment.createdAt?.getTime() || Date.now(),
+      createdAt: comment.createdAt instanceof Date ? comment.createdAt.getTime() : Date.now(),
     }));
 
     return c.json<QueueItemResponse>({
@@ -260,9 +260,9 @@ api.post('/analyze', async (c) => {
     // Fetch real subreddit rules for context
     let subredditRules: string[] = [];
     try {
-      const subredditName = await reddit.getCurrentSubredditName();
-      const rules = await reddit.getRules(subredditName);
-      subredditRules = rules.map((rule) => `${rule.title}: ${rule.description}`);
+      const subreddit = await reddit.getCurrentSubreddit();
+      const rules = await reddit.getRules(subreddit.name);
+      subredditRules = rules.map((rule) => `${(rule as any).shortName || 'Rule'}: ${(rule as any).description || ''}`);
     } catch (ruleError) {
       console.warn('Could not fetch subreddit rules:', ruleError);
     }
@@ -303,9 +303,9 @@ api.post('/removal-reason', async (c) => {
     // Fetch real subreddit rules for removal reason context
     let subredditRules: string[] = [];
     try {
-      const subredditName = await reddit.getCurrentSubredditName();
-      const rules = await reddit.getRules(subredditName);
-      subredditRules = rules.map((rule) => `${rule.title}: ${rule.description}`);
+      const subreddit = await reddit.getCurrentSubreddit();
+      const rules = await reddit.getRules(subreddit.name);
+      subredditRules = rules.map((rule) => `${(rule as any).shortName || 'Rule'}: ${(rule as any).description || ''}`);
     } catch (ruleError) {
       console.warn('Could not fetch subreddit rules:', ruleError);
     }
