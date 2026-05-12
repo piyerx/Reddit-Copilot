@@ -23,8 +23,8 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
   if (!item) return null;
 
   return (
-    <div className="overflow-hidden rounded border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
-      <div className="p-4">
+    <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
+      <div className="p-5">
         {/* Post Header */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex-1">
@@ -56,37 +56,39 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
 
       {/* Reports */}
       {item.reports.length > 0 && (
-        <div className="border-t border-gray-200 bg-red-50 p-3 dark:border-gray-700 dark:bg-gray-900">
-          <p className="mb-2 text-xs font-semibold text-red-700 dark:text-red-400">
-            Reports ({item.reportCount})
+        <div className="border-t border-gray-200 bg-orange-50 px-5 py-4 dark:border-gray-700 dark:bg-gray-900/50">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-700 dark:text-orange-400">
+            ⚠ Flagged ({item.reportCount})
           </p>
-          <ul className="space-y-1 text-xs text-red-600 dark:text-red-300">
+          <ul className="space-y-1">
             {item.reports.map((report, idx) => (
-              <li key={idx}>{report}</li>
+              <li key={idx} className="text-xs text-orange-600 dark:text-orange-300">
+                • {report}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
       {/* Navigation */}
-      <div className="border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900">
-        <div className="flex items-center justify-between gap-2">
+      <div className="border-t border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-900/50">
+        <div className="flex items-center justify-between gap-3">
           <button
             onClick={onPrevious}
             disabled={!hasPrevious}
-            className="flex-1 rounded bg-gray-300 px-2 py-1.5 text-xs font-semibold text-gray-900 transition-colors hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Prev
+            ← Prev
           </button>
-          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-            {currentIndex + 1} of {total}
+          <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+            {currentIndex + 1} / {total}
           </span>
           <button
             onClick={onNext}
             disabled={!hasNext}
-            className="flex-1 rounded bg-gray-300 px-2 py-1.5 text-xs font-semibold text-gray-900 transition-colors hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="rounded-full bg-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 transition-all hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Next
+            Next →
           </button>
         </div>
       </div>

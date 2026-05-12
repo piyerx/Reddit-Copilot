@@ -19,61 +19,61 @@ export const AISummary: React.FC<AISummaryProps> = ({
   loading = false,
 }) => {
   return (
-    <div className="rounded border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
-      <div className="border-b border-gray-200 p-4 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Moderation Analysis
+    <div className="rounded-lg border border-blue-300 bg-blue-50 shadow-sm dark:border-blue-900 dark:bg-blue-950/30">
+      <div className="border-b border-blue-200 px-5 py-3 dark:border-blue-900">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+          🤖 CoPilot Analysis
         </h3>
       </div>
-      <div className="p-4">
+      <div className="px-5 py-4">
         {loading ? (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            Analyzing post...
+          <p className="text-xs text-blue-600 dark:text-blue-300">
+            Analyzing with CoPilot...
           </p>
         ) : analysis ? (
           <>
-            <p className="mb-3 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-              {analysis.summary}
-            </p>
+            {/* Key Insight */}
+            <div className="mb-4 rounded bg-white p-3 dark:bg-blue-900/20">
+              <p className="text-sm font-semibold leading-relaxed text-blue-900 dark:text-blue-100">
+                {analysis.summary}
+              </p>
+            </div>
 
+            {/* Issues */}
             {analysis.violatedRules.length > 0 && (
-              <div className="mb-3">
-                <p className="mb-2 text-xs font-semibold text-gray-900 dark:text-gray-200">
+              <div className="mb-4 rounded bg-orange-100 p-3 dark:bg-orange-900/20">
+                <p className="mb-2 text-xs font-bold uppercase text-orange-700 dark:text-orange-300">
                   Potential Issues
                 </p>
                 <ul className="space-y-1">
                   {analysis.violatedRules.map((violation, idx) => (
-                    <li
-                      key={idx}
-                      className="text-xs text-gray-700 dark:text-gray-300"
-                    >
-                      {violation}
+                    <li key={idx} className="text-xs text-orange-700 dark:text-orange-200">
+                      • {violation}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
 
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-16 rounded-full bg-gray-300 dark:bg-gray-700">
-                  <div
-                    className="h-1.5 rounded-full bg-red-600"
-                    style={{ width: `${analysis.confidence}%` }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  {analysis.confidence}% confidence
-                </span>
+            {/* Confidence Meter */}
+            <div className="mb-4 rounded bg-white p-3 dark:bg-blue-900/20">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">CONFIDENCE</span>
+                <span className="text-sm font-bold text-blue-900 dark:text-blue-100">{analysis.confidence}%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-300 dark:bg-gray-700">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                  style={{ width: `${analysis.confidence}%` }}
+                />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-900 dark:text-gray-200">
-                Suggested Action
-              </p>
+            {/* Suggested Action */}
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-xs font-bold text-blue-700 dark:text-blue-300">ACTION:</span>
               <span
-                className={`rounded px-2 py-1 text-xs font-semibold ${
+                className={`rounded-full px-3 py-1 text-xs font-bold transition-all ${
                   actionColors[analysis.suggestedAction]
                 }`}
               >
@@ -81,15 +81,18 @@ export const AISummary: React.FC<AISummaryProps> = ({
               </span>
             </div>
 
+            {/* Reasoning */}
             {analysis.reasoning && (
-              <p className="mt-3 border-t border-gray-200 pt-3 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-400">
-                {analysis.reasoning}
-              </p>
+              <div className="rounded border-l-4 border-blue-400 bg-white p-3 dark:border-blue-700 dark:bg-blue-900/20">
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  <span className="font-semibold text-gray-700 dark:text-gray-200">Reasoning:</span> {analysis.reasoning}
+                </p>
+              </div>
             )}
           </>
         ) : (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            No analysis available
+          <p className="text-xs text-blue-600 dark:text-blue-300">
+            Awaiting analysis...
           </p>
         )}
       </div>

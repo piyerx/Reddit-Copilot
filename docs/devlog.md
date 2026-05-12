@@ -36,6 +36,20 @@
   - Color-coded action suggestions (approve, remove, warn, escalate, review)
 - Integrated analysis loading state management.
 
+## Reddit Visual Identity Redesign
+- Implemented Reddit-native background color (#dae0e6 for light mode).
+- Redesigned all containers with softer, more rounded corners (rounded-lg).
+- Added subtle shadows and improved spacing throughout.
+- Renamed "Moderation Analysis" to "CoPilot Analysis" with prominent blue styling.
+- Improved information hierarchy:
+  - Key insights in highlighted white boxes
+  - Violations displayed in orange warning sections
+  - Confidence meter with gradient progress bar
+  - Action suggestions as prominent colored pills
+- Moved action buttons to sticky bottom action bar with pill-shaped button design.
+- Enhanced typography hierarchy with better font sizing and tracking.
+- Improved visual scannability for faster mod decision-making.
+
 ## Key Architecture Decisions
 - **AI Service**: Abstracted into reusable service with provider switching (demo/Gemini/OpenAI).
 - **Heuristic Fallback**: Uses simple rule detection when API unavailable (professional fallback).

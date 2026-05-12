@@ -61,15 +61,15 @@ export const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 py-4 dark:bg-gray-900 sm:px-6 md:px-8">
-      <div className="mx-auto max-w-2xl space-y-4">
+    <div className="min-h-screen bg-reddit-bg px-4 py-6 dark:bg-gray-900 sm:px-6 md:px-8">
+      <div className="mx-auto max-w-2xl space-y-3 pb-28">
         {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Moderation Queue
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Moderation Hub
           </h1>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            {items.length} item{items.length !== 1 ? 's' : ''} waiting
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {items.length} item{items.length !== 1 ? 's' : ''} in queue • CoPilot-assisted
           </p>
         </div>
 
@@ -84,27 +84,26 @@ export const App = () => {
           hasPrevious={hasPreviousItem}
         />
 
-        {/* Moderation Analysis */}
+        {/* CoPilot Analysis */}
         <AISummary analysis={analysis} loading={analysisLoading} />
 
         {/* Comments */}
         <CommentsView comments={comments} loading={loading} />
+      </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-3 rounded border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800">
-          <button className="rounded bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-green-700 active:bg-green-800">
+      {/* Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-reddit-bg px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+        <div className="mx-auto flex max-w-2xl gap-2">
+          <button className="flex-1 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600">
             Approve
           </button>
-          <button className="rounded bg-red-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700 active:bg-red-800">
-            Remove
-          </button>
-          <button className="rounded bg-orange-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-orange-700 active:bg-orange-800">
+          <button className="flex-1 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600">
             Warn
           </button>
+          <button className="flex-1 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600">
+            Remove
+          </button>
         </div>
-
-        {/* Footer Spacer */}
-        <div className="h-4" />
       </div>
     </div>
   );

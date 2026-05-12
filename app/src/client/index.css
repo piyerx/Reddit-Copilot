@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+@layer utilities {
+  .bg-reddit-bg {
+    background-color: #dae0e6;
+  }
+
+  .dark .bg-reddit-bg {
+    background-color: rgb(17, 24, 28);
+  }
+}
