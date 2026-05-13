@@ -202,9 +202,30 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ---
 
-## Future Enhancements
+## Phase 5: Mod Tools Integration (In Progress)
 
-- Phase 5: Real Reddit API integration for approve/remove/warn actions
+✅ **Mod Tools Menu Entry**
+  - "Open CoPilot" menu item in Subreddit Mod Tools
+  - Single persistent dashboard post (created on app install)
+  - Post ID stored in Redis for efficient reuse
+  - Menu navigates directly to game entrypoint (bypasses splash)
+  - Professional mod-only entry point
+
+✅ **Splash Screen (Public/User-Facing)**
+  - Community-contextual welcome screen
+  - "Access Moderation Queue" button → expands to dashboard
+  - Feature overview (AI analysis, removal reasons, team coordination)
+  - Professional design with Sparkles icon and gradient
+  - Dark mode support
+
+🔄 **Future Enhancement: Smart Access Control**
+  - Auto-expand for moderators (skip splash)
+  - Prevent non-mods from accessing dashboard
+  - Issue: Devvit event trust restrictions with auto-expansion
+  - Solution: Will implement server-side validation + proper permission checks
+  - Timeline: Phase 6+
+
+---
 - Phase 6: User history + reputation summary display
 - Phase 7: Spam/repost detection via heuristics
 - Phase 8: Prompt tuning and performance optimization
@@ -215,12 +236,12 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ## Project Status
 
-**Current Phase:** 4 - Complete ✅
+**Current Phase:** 5 - Mod Tools Integration (In Progress) ⏳
 
-**Build:** Ready for production testing
-**Features:** MVP fully implemented
+**Build:** Ready for testing with menu integration
+**Features:** MVP + professional mod tools entry point
 **Code Quality:** TypeScript strict, modular, well-documented
-**UI/UX:** Professional Reddit-native design
+**UI/UX:** Professional Reddit-native design, mod-only access
 **AI:** Real Gemini integration with fallback
 
-Next: Real-world subreddit testing with proper rules configured.
+Next: Real Reddit API integration for approve/remove/warn actions; real-world subreddit testing.

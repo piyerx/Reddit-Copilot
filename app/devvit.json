@@ -20,18 +20,18 @@
   "menu": {
     "items": [
       {
+        "label": "Open CoPilot",
+        "description": "AI-powered moderation dashboard",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/open-copilot"
+      },
+      {
         "label": "Create a new post",
         "description": "tx-nova",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-create"
-      },
-      {
-        "label": "Example form",
-        "description": "Show a simple form",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/example-form"
       }
     ]
   },

@@ -193,7 +193,7 @@ api.get('/queue-item/:postId', async (c) => {
 
   try {
     // Fetch real post data from Reddit
-    const post = await reddit.getPostById(postId);
+    const post = await reddit.getPostById(postId as `t3_${string}`);
     if (!post) {
       return c.json<ErrorResponse>(
         { status: 'error', message: 'Post not found' },
