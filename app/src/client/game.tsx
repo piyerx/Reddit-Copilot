@@ -7,6 +7,7 @@ import { useQueue } from './hooks/useQueue';
 import { QueueCarousel } from './components/QueueCarousel';
 import { CommentsView } from './components/CommentsView';
 import { AISummary } from './components/AISummary';
+import { NotesPanel } from './components/NotesPanel';
 
 export const App = () => {
   const {
@@ -23,6 +24,34 @@ export const App = () => {
     hasNextItem,
     hasPreviousItem,
   } = useQueue();
+
+  const handleAction = async (
+    action: 'approve' | 'remove' | 'warn' | 'escalate' | 'review'
+  ) => {
+    if (!currentItem) return;
+
+    try {
+      const reason = `${action.charAt(0).toUpperCase() + action.slice(1)} action taken via CoPilot`;
+      await fetch('/api/decisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: currentItem.postId,
+          action,
+          reason,
+          aiSummary: analysis?.summary,
+          confidence: analysis?.confidence,
+        }),
+      });
+
+      // Move to next item after action
+      if (hasNextItem) {
+        goToNext();
+      }
+    } catch (err) {
+      console.error('Error logging decision:', err);
+    }
+  };
 
   if (error && items.length === 0) {
     return (
@@ -90,20 +119,32 @@ export const App = () => {
 
         {/* Comments */}
         <CommentsView comments={comments} loading={loading} />
+
+        {/* Notes Panel */}
+        {currentItem && <NotesPanel postId={currentItem.postId} />}
       </div>
 
       {/* Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-reddit-bg px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
         <div className="mx-auto flex max-w-2xl gap-2">
-          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600">
+          <button
+            onClick={() => handleAction('approve')}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600"
+          >
             <CheckCircle2 className="w-4 h-4" />
             Approve
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600">
+          <button
+            onClick={() => handleAction('warn')}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600"
+          >
             <AlertCircle className="w-4 h-4" />
             Warn
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600">
+          <button
+            onClick={() => handleAction('remove')}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600"
+          >
             <XCircle className="w-4 h-4" />
             Remove
           </button>

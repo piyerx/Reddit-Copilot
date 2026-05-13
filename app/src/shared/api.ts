@@ -84,3 +84,59 @@ export type RulesResponse = {
   type: 'rules';
   rules: SubredditRule[];
 };
+
+// Notes & Decision Log Types
+export type PostNote = {
+  id: string;
+  postId: string;
+  author: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type DecisionLog = {
+  id: string;
+  postId: string;
+  action: 'approve' | 'remove' | 'warn' | 'escalate' | 'review' | 'none';
+  moderator: string;
+  reason: string;
+  aiSummary?: string;
+  confidence?: number;
+  timestamp: number;
+  notes?: string;
+};
+
+export type PostNotesResponse = {
+  type: 'post-notes';
+  notes: PostNote[];
+};
+
+export type DecisionLogResponse = {
+  type: 'decision-log';
+  log: DecisionLog[];
+};
+
+export type CreateNoteRequest = {
+  postId: string;
+  content: string;
+};
+
+export type CreateNoteResponse = {
+  type: 'note-created';
+  note: PostNote;
+};
+
+export type LogDecisionRequest = {
+  postId: string;
+  action: 'approve' | 'remove' | 'warn' | 'escalate' | 'review' | 'none';
+  reason: string;
+  aiSummary?: string;
+  confidence?: number;
+  notes?: string;
+};
+
+export type LogDecisionResponse = {
+  type: 'decision-logged';
+  log: DecisionLog;
+};

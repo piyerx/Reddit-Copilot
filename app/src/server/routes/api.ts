@@ -12,8 +12,15 @@ import type {
   RemovalReasonResponse,
   SubredditRule,
   RulesResponse,
+  PostNotesResponse,
+  DecisionLogResponse,
+  CreateNoteResponse,
+  LogDecisionResponse,
+  CreateNoteRequest,
+  LogDecisionRequest,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
+import { notesService } from '../services/notes';
 
 type ErrorResponse = {
   status: 'error';
@@ -327,6 +334,138 @@ api.post('/removal-reason', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to generate removal reason',
+      },
+      500
+    );
+  }
+});
+
+// Notes & Decision Log Endpoints
+api.get('/notes/:postId', async (c) => {
+  const postId = c.req.param('postId');
+
+  if (!postId) {
+    return c.json<ErrorResponse>(
+      { status: 'error', message: 'postId is required' },
+      400
+    );
+  }
+
+  try {
+    const notes = await notesService.getNotesForPost(postId);
+    return c.json<PostNotesResponse>({
+      type: 'post-notes',
+      notes,
+    });
+  } catch (error) {
+    console.error(`Error fetching notes for post ${postId}:`, error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch notes',
+      },
+      500
+    );
+  }
+});
+
+api.post('/notes', async (c) => {
+  try {
+    const { postId, content } = await c.req.json<CreateNoteRequest>();
+
+    if (!postId || !content) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId and content are required' },
+        400
+      );
+    }
+
+    const username = await reddit.getCurrentUsername();
+    const note = await notesService.addNote(postId, username || 'anonymous', content);
+
+    return c.json<CreateNoteResponse>({
+      type: 'note-created',
+      note,
+    });
+  } catch (error) {
+    console.error('Error creating note:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to create note',
+      },
+      500
+    );
+  }
+});
+
+api.get('/decisions/:postId', async (c) => {
+  const postId = c.req.param('postId');
+
+  if (!postId) {
+    return c.json<ErrorResponse>(
+      { status: 'error', message: 'postId is required' },
+      400
+    );
+  }
+
+  try {
+    const log = await notesService.getDecisionLog(postId);
+    return c.json<DecisionLogResponse>({
+      type: 'decision-log',
+      log,
+    });
+  } catch (error) {
+    console.error(`Error fetching decision log for post ${postId}:`, error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch decision log',
+      },
+      500
+    );
+  }
+});
+
+api.post('/decisions', async (c) => {
+  try {
+    const {
+      postId,
+      action,
+      reason,
+      aiSummary,
+      confidence,
+      notes,
+    } = await c.req.json<LogDecisionRequest>();
+
+    if (!postId || !action || !reason) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId, action, and reason are required' },
+        400
+      );
+    }
+
+    const moderator = await reddit.getCurrentUsername();
+    const decision = await notesService.logDecision(
+      postId,
+      action,
+      moderator || 'anonymous',
+      reason,
+      aiSummary,
+      confidence,
+      notes
+    );
+
+    return c.json<LogDecisionResponse>({
+      type: 'decision-logged',
+      log: decision,
+    });
+  } catch (error) {
+    console.error('Error logging decision:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to log decision',
       },
       500
     );
