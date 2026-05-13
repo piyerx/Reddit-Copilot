@@ -1,3 +1,7 @@
+<p align=center>
+  <img width="700" alt="image" src="https://github.com/user-attachments/assets/3016f4d9-b21e-44e8-9c1f-2eab6e27955f" />
+</p>
+
 # Reddit Mod Co-Pilot
 
 AI-powered, context-aware moderation assistant for Reddit moderators. Built with Devvit for the Reddit Mod Tools & Migrated Apps Hackathon 2026.
