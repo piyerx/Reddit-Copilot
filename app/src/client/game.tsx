@@ -145,62 +145,84 @@ export const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-reddit-bg px-4 py-6 dark:bg-gray-900 sm:px-6 md:px-8">
-      <div className="mx-auto max-w-2xl space-y-3 pb-28">
+    <div className="min-h-screen bg-reddit-bg px-4 py-8 sm:px-6 md:px-8">
+      <div className="mx-auto max-w-3xl space-y-6 pb-32">
         {/* Header */}
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Moderation Hub
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {items.length} item{items.length !== 1 ? 's' : ''} in queue • CoPilot-assisted
+          <p className="text-lg text-slate-600 dark:text-slate-400">
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+              {items.length} item{items.length !== 1 ? 's' : ''} in queue • CoPilot-assisted
+            </span>
           </p>
         </div>
 
         {/* Queue Item Card */}
-        <QueueCarousel
-          item={currentItem}
-          currentIndex={currentIndex}
-          total={items.length}
-          onNext={goToNext}
-          onPrevious={goToPrevious}
-          hasNext={hasNextItem}
-          hasPrevious={hasPreviousItem}
-        />
+        <section className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">Post Review</h2>
+          <QueueCarousel
+            item={currentItem}
+            currentIndex={currentIndex}
+            total={items.length}
+            onNext={goToNext}
+            onPrevious={goToPrevious}
+            hasNext={hasNextItem}
+            hasPrevious={hasPreviousItem}
+          />
+        </section>
 
         {/* CoPilot Analysis */}
-        <AISummary analysis={analysis} loading={analysisLoading} />
+        <section className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">AI Analysis</h2>
+          <AISummary analysis={analysis} loading={analysisLoading} />
+        </section>
 
         {/* Comments */}
-        <CommentsView comments={comments} loading={loading} />
+        <section className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">Discussion</h2>
+          <CommentsView comments={comments} loading={loading} />
+        </section>
 
         {/* User History & Reputation */}
-        {currentItem && <UserHistory username={currentItem.author} />}
+        {currentItem && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">User Profile</h2>
+            <UserHistory username={currentItem.author} />
+          </section>
+        )}
 
         {/* Notes Panel */}
-        {currentItem && <NotesPanel postId={currentItem.postId} />}
+        {currentItem && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">Documentation</h2>
+            <NotesPanel postId={currentItem.postId} />
+          </section>
+        )}
 
         {/* Action Feedback Messages */}
         {actionError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-            <p className="font-semibold">Action Failed</p>
-            <p className="text-xs mt-1">{actionError}</p>
+          <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-300 animate-in">
+            <p className="font-semibold mb-1">⚠️ Action Failed</p>
+            <p className="text-xs">{actionError}</p>
           </div>
         )}
         {actionSuccess && (
-          <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300">
+          <div className="rounded-xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 p-4 text-sm text-green-700 dark:text-green-300 animate-in">
             <p className="font-semibold">✓ {actionSuccess}</p>
           </div>
         )}
       </div>
 
       {/* Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-reddit-bg px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-        <div className="mx-auto flex max-w-2xl gap-2">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 dark:border-slate-800 bg-reddit-bg backdrop-blur-sm px-4 py-4 shadow-2xl dark:shadow-slate-900">
+        <div className="mx-auto flex max-w-3xl gap-3">
           <button
             onClick={() => handleAction('approve')}
             disabled={actionLoading !== null || !currentItem}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-600"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 disabled:from-slate-300 dark:disabled:from-slate-700 px-4 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50 shadow-lg dark:from-green-700 dark:to-green-800 dark:hover:from-green-600 dark:hover:to-green-700"
           >
             {actionLoading === 'approve' ? (
               <Loader className="w-4 h-4 animate-spin" />
@@ -212,7 +234,7 @@ export const App = () => {
           <button
             onClick={() => handleAction('warn')}
             disabled={actionLoading !== null || !currentItem}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-orange-700 dark:hover:bg-orange-600"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 disabled:from-slate-300 dark:disabled:from-slate-700 px-4 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50 shadow-lg dark:from-orange-700 dark:to-orange-800 dark:hover:from-orange-600 dark:hover:to-orange-700"
           >
             {actionLoading === 'warn' ? (
               <Loader className="w-4 h-4 animate-spin" />
@@ -224,7 +246,7 @@ export const App = () => {
           <button
             onClick={() => handleAction('remove')}
             disabled={actionLoading !== null || !currentItem}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-700 dark:hover:bg-red-600"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:scale-95 disabled:from-slate-300 dark:disabled:from-slate-700 px-4 py-3 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50 shadow-lg dark:from-red-700 dark:to-red-800 dark:hover:from-red-600 dark:hover:to-red-700"
           >
             {actionLoading === 'remove' ? (
               <Loader className="w-4 h-4 animate-spin" />

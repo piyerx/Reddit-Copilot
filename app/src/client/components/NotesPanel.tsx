@@ -92,69 +92,79 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
   ): string => {
     switch (action) {
       case 'approve':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-800';
       case 'remove':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800';
       case 'warn':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-800';
       case 'escalate':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800';
       case 'review':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600';
     }
   };
 
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-300 p-4 ${className}`}
+      className={`card ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={20} className="text-blue-500" />
-          <h3 className="font-semibold text-gray-900">CoPilot Notes</h3>
+      <div className="card-header flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950">
+            <MessageSquare size={18} className="text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="font-bold text-gray-900 dark:text-white">CoPilot Notes</h3>
         </div>
-        <div className="flex gap-2 border-b border-gray-300">
-          <button
-            onClick={() => setActiveTab('notes')}
-            className={`px-3 py-1 text-sm font-medium ${
-              activeTab === 'notes'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Notes ({notes.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('decisions')}
-            className={`px-3 py-1 text-sm font-medium ${
-              activeTab === 'decisions'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            History ({decisions.length})
-          </button>
-        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-0 border-b border-slate-100 dark:border-slate-800">
+        <button
+          onClick={() => setActiveTab('notes')}
+          className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+            activeTab === 'notes'
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-slate-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-gray-300'
+          }`}
+        >
+          Notes ({notes.length})
+          {activeTab === 'notes' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"></div>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('decisions')}
+          className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+            activeTab === 'decisions'
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-slate-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-gray-300'
+          }`}
+        >
+          History ({decisions.length})
+          {activeTab === 'decisions' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"></div>
+          )}
+        </button>
       </div>
 
       {/* Error state */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-center gap-2">
-          <AlertCircle size={16} />
+        <div className="m-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-sm text-red-700 dark:text-red-400 flex items-center gap-3">
+          <AlertCircle size={18} className="flex-shrink-0" />
           {error}
         </div>
       )}
 
       {/* Loading state */}
       {loading && (
-        <div className="py-8 text-center">
+        <div className="py-12 text-center">
           <div className="inline-block animate-spin">
-            <MessageSquare size={24} className="text-gray-400" />
+            <MessageSquare size={28} className="text-blue-400" />
           </div>
-          <p className="text-sm text-gray-500 mt-2">Loading...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">Loading...</p>
         </div>
       )}
 
@@ -162,57 +172,57 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
         <>
           {/* Notes Tab */}
           {activeTab === 'notes' && (
-            <div>
+            <div className="px-6 py-4 space-y-4">
               {/* Add Note Section */}
-              <div className="mb-4">
+              <div>
                 <textarea
                   value={newNoteContent}
                   onChange={(e) => setNewNoteContent(e.target.value)}
                   placeholder="Add a note about this post..."
-                  className="w-full p-3 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={3}
                 />
                 <button
                   onClick={handleAddNote}
                   disabled={addingNote || !newNoteContent.trim()}
-                  className="mt-2 w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-medium py-2 rounded flex items-center justify-center gap-2 transition-colors"
+                  className="mt-3 w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-700 dark:disabled:to-slate-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
                 >
-                  <Plus size={16} />
+                  <Plus size={18} />
                   {addingNote ? 'Adding...' : 'Add Note'}
                 </button>
               </div>
 
               {/* Notes List */}
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-64 overflow-y-auto">
                 {notes.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
                     No notes yet. Add one above.
                   </p>
                 ) : (
                   notes.map((note) => (
                     <div
                       key={note.id}
-                      className="p-3 bg-gray-50 border border-gray-200 rounded"
+                      className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">
                             {note.author}
                           </p>
-                          <p className="text-xs text-gray-500 mb-2">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                             {formatDate(note.createdAt)}
                           </p>
-                          <p className="text-sm text-gray-700">{note.content}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.content}</p>
                         </div>
-                        <div className="flex gap-1 ml-2">
+                        <div className="flex gap-1 ml-3 flex-shrink-0">
                           <button
-                            className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700 transition-colors"
+                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                             title="Edit note"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
-                            className="p-1 hover:bg-red-100 rounded text-gray-500 hover:text-red-600 transition-colors"
+                            className="p-2 hover:bg-red-100 dark:hover:bg-red-950 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                             title="Delete note"
                           >
                             <Trash2 size={16} />
@@ -228,61 +238,63 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
 
           {/* Decisions Tab */}
           {activeTab === 'decisions' && (
-            <div className="space-y-3">
-              {decisions.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-8">
-                  No moderation decisions logged yet.
-                </p>
-              ) : (
-                decisions.map((decision) => (
-                  <div
-                    key={decision.id}
-                    className="p-3 bg-gray-50 border border-gray-200 rounded"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getActionColor(
-                            decision.action
-                          )}`}
-                        >
-                          {decision.action.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          by {decision.moderator}
-                        </span>
+            <div className="px-6 py-4">
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {decisions.length === 0 ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
+                    No moderation decisions logged yet.
+                  </p>
+                ) : (
+                  decisions.map((decision) => (
+                    <div
+                      key={decision.id}
+                      className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getActionColor(
+                              decision.action
+                            )}`}
+                          >
+                            {decision.action.toUpperCase()}
+                          </span>
+                          <span className="text-xs text-slate-600 dark:text-slate-400">
+                            by {decision.moderator}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                          <Clock size={14} />
+                          <span className="text-xs">{formatDate(decision.timestamp)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <Clock size={14} />
-                        <span className="text-xs">{formatDate(decision.timestamp)}</span>
+
+                      <div className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        <strong>Reason:</strong> {decision.reason}
                       </div>
+
+                      {decision.aiSummary && (
+                        <div className="text-sm text-gray-700 dark:text-gray-300 mb-3 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-900">
+                          <strong className="text-blue-800 dark:text-blue-400">AI Summary:</strong>{' '}
+                          {decision.aiSummary}
+                        </div>
+                      )}
+
+                      {decision.confidence && (
+                        <div className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                          Confidence: <span className="font-semibold">{decision.confidence}%</span>
+                        </div>
+                      )}
+
+                      {decision.notes && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-3 border-t border-slate-200 dark:border-slate-700 pt-3">
+                          <strong>Notes:</strong> {decision.notes}
+                        </div>
+                      )}
                     </div>
-
-                    <div className="text-sm text-gray-700 mb-2">
-                      <strong>Reason:</strong> {decision.reason}
-                    </div>
-
-                    {decision.aiSummary && (
-                      <div className="text-sm text-gray-600 mb-2 bg-blue-50 p-2 rounded">
-                        <strong className="text-blue-800">AI Summary:</strong>{' '}
-                        {decision.aiSummary}
-                      </div>
-                    )}
-
-                    {decision.confidence && (
-                      <div className="text-xs text-gray-500">
-                        Confidence: {decision.confidence}%
-                      </div>
-                    )}
-
-                    {decision.notes && (
-                      <div className="text-xs text-gray-600 mt-2 border-t border-gray-200 pt-2">
-                        <strong>Notes:</strong> {decision.notes}
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           )}
         </>

@@ -13,8 +13,8 @@ export const CommentsView: React.FC<CommentsViewProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800">
-        <p className="text-center text-xs text-gray-600 dark:text-gray-400">
+      <div className="card">
+        <p className="text-center text-sm text-slate-600 dark:text-slate-400 p-6">
           Loading comments...
         </p>
       </div>
@@ -23,8 +23,8 @@ export const CommentsView: React.FC<CommentsViewProps> = ({
 
   if (comments.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800">
-        <p className="text-center text-xs text-gray-600 dark:text-gray-400">
+      <div className="card">
+        <p className="text-center text-sm text-slate-600 dark:text-slate-400 p-6">
           No comments on this post
         </p>
       </div>
@@ -32,29 +32,29 @@ export const CommentsView: React.FC<CommentsViewProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800">
-      <div className="border-b border-gray-200 px-5 py-3 dark:border-gray-700">
+    <div className="card overflow-hidden">
+      <div className="card-header">
         <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
           <MessageSquare className="w-4 h-4" />
           Top Comments • {comments.length}
         </h3>
       </div>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-slate-100 dark:divide-slate-800">
         {comments.map((comment) => (
           <div
             key={comment.id}
-            className="px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            className="px-6 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
           >
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-900 dark:text-gray-200">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 u/{comment.author}
               </span>
-              <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <TrendingUp className="w-3 h-3" />
+              <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <TrendingUp className="w-3.5 h-3.5" />
                 {comment.score}
               </span>
             </div>
-            <p className="text-xs leading-relaxed text-gray-700 line-clamp-3 dark:text-gray-300">
+            <p className="text-sm leading-relaxed text-gray-700 line-clamp-3 dark:text-gray-300">
               {comment.body}
             </p>
           </div>

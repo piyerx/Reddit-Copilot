@@ -1,3 +1,5 @@
+FIX Phase 8: User data is not being fetched. Karma and account age is always 0
+
 # Devlog: Reddit Mod Co-Pilot
 
 An AI-powered moderation assistant built with Devvit, Gemini 1.5 Flash, and React.
