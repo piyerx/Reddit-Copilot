@@ -1,11 +1,69 @@
 @import 'tailwindcss';
 
+@layer base {
+  body {
+    @apply bg-slate-50 text-gray-900;
+  }
+
+  body.dark {
+    @apply bg-slate-950 text-gray-100;
+  }
+}
+
 @layer utilities {
   .bg-reddit-bg {
-    background-color: #dae0e6;
+    background-color: rgb(248, 250, 252);
   }
 
   .dark .bg-reddit-bg {
-    background-color: rgb(17, 24, 28);
+    background-color: rgb(8, 17, 32);
+  }
+
+  /* Smooth card styling */
+  .card {
+    @apply rounded-xl bg-white shadow-sm border border-slate-100 transition-shadow hover:shadow-md;
+  }
+
+  .dark .card {
+    @apply bg-slate-900 border-slate-800;
+  }
+
+  /* Header styling */
+  .card-header {
+    @apply border-b border-slate-100 px-6 py-4;
+  }
+
+  .dark .card-header {
+    @apply border-slate-800;
+  }
+
+  /* Soft shadows */
+  .shadow-soft {
+    @apply shadow-sm;
+  }
+
+  /* Gradient backgrounds for accents */
+  .gradient-bg-blue {
+    @apply bg-gradient-to-br from-blue-50 to-blue-100;
+  }
+
+  .dark .gradient-bg-blue {
+    @apply from-blue-950 to-blue-900;
+  }
+
+  .gradient-bg-green {
+    @apply bg-gradient-to-br from-green-50 to-green-100;
+  }
+
+  .dark .gradient-bg-green {
+    @apply from-green-950 to-green-900;
+  }
+
+  .gradient-bg-orange {
+    @apply bg-gradient-to-br from-orange-50 to-orange-100;
+  }
+
+  .dark .gradient-bg-orange {
+    @apply from-orange-950 to-orange-900;
   }
 }

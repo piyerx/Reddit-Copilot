@@ -1,0 +1,65 @@
+    const { postId, warningMessage } = await c.req.json<{
+      postId: string;
+      warningMessage: string;
+    }>();
+
+    if (!postId || !warningMessage) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId and warningMessage are required' },
+        400
+      );
+    }
+
+    const result = await ModerationService.warnUser(postId, warningMessage);
+
+    return c.json<ModerationActionResponse>({
+      type: 'action-result',
+      success: result.success,
+      message: result.message,
+      action: 'warn',
+      postId,
+    });
+  } catch (error) {
+    console.error('Error warning user:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to send warning',
+      },
+      500
+    );
+  }
+});
+
+// User History & Reputation Endpoint
+api.get('/user/:username', async (c) => {
+  const username = c.req.param('username');
+
+  if (!username) {
+    return c.json<ErrorResponse>(
+      { status: 'error', message: 'username is required' },
+      400
+    );
+  }
+
+  try {
+    const subreddit = await reddit.getCurrentSubreddit();
+    const subredditName = subreddit.name;
+
+    const profile = await UserService.getUserProfile(username, subredditName);
+
+    return c.json<UserProfileResponse>({
+      type: 'user-profile',
+      profile,
+    });
+  } catch (error) {
+    console.error(`Error fetching user profile for ${username}:`, error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch user profile',
+      },
+      500
+    );
+  }
+});
