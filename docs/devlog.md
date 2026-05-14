@@ -316,7 +316,54 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ---
 
-- Phase 8: User history + reputation summary display
+## Phase 8: User History & Reputation Display ✅ **COMPLETED**
+
+✅ **UserService Implementation** (`services/user.ts`)
+  - Fetch user reputation and account metrics (karma, age, verification status)
+  - Pull user moderation history from mod log (removals, warnings)
+  - Calculate user risk level based on account age, karma, and moderation history
+  - Automatic risk categorization: low/medium/high
+
+✅ **User Profile API Endpoint**
+  - `GET /api/user/:username` → Complete user profile with reputation + history
+  - Returns: account age, karma, suspension status, removal count, warning count, recent removals
+  - Error handling with graceful degradation
+
+✅ **User History UI Component** (`UserHistory.tsx`)
+  - Professional reputation display card
+  - Risk level badge (low/medium/high) with color coding
+  - Account stats: age, karma, verification status
+  - Moderation history: total removals and warnings
+  - Recent removals section (last 3 with dates)
+  - Suspension warning indicator
+  - Responsive dark mode support
+  - Loading and error states
+
+✅ **Integration into Moderation Flow**
+  - UserHistory component added to main game view
+  - Displays automatically for current post author
+  - Shows directly below comments for quick context
+  - Helps moderators make risk-informed decisions
+  - No impact on existing components or workflow
+
+**Key Features:**
+- Account age calculation (days since creation)
+- Karma aggregation (comment + link karma)
+- Risk scoring algorithm based on account metrics
+- Recent removal tracking with dates
+- Verification and suspension indicators
+- Color-coded risk levels for quick visual assessment
+
+**Data Points Displayed:**
+- Account age and verification status
+- Total comment + link karma
+- Previous removal count
+- Warning count
+- Recent removal titles and dates
+- Account suspension status (if applicable)
+
+---
+
 - Phase 9: Spam/repost detection via heuristics
 - Phase 10: Prompt tuning and performance optimization
 - Queue prioritization (urgent cases first)
@@ -326,16 +373,17 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ## Project Status
 
-**Current Phase:** 7 - Improved Moderation Queue Fetching ✅ **COMPLETE**
+**Current Phase:** 8 - User History & Reputation Display ✅ **COMPLETE**
 
 **Build:** Clean, production-ready
-**Features:** MVP complete + real Reddit integration + robust queue fetching
+**Features:** MVP complete + real Reddit integration + robust queue fetching + user context
 **Code Quality:** TypeScript strict, modular, well-documented
-**UI/UX:** Professional, responsive, real-time feedback
+**UI/UX:** Professional, responsive, real-time feedback, context-aware
 **AI:** Real Gemini integration with rule-aware analysis
 **Moderation:** Full Reddit API integration (approve/remove/warn)
 **Testing:** Reliable multi-source queue + Testing Mode for development
+**User Context:** Complete reputation and history display
 
-**Key Improvement:** Moderation queue now reliably fetches from multiple sources (reported, removed, mod-log, testing) enabling deterministic testing in small/private subreddits.
+**Key Improvement:** Moderators now have full visibility into user history and risk profile before making moderation decisions.
 
-Next: User history and reputation features.
+Next: Spam/repost detection via heuristics.

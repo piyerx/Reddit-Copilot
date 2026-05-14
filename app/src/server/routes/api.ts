@@ -19,11 +19,13 @@ import type {
   CreateNoteRequest,
   LogDecisionRequest,
   ModerationActionResponse,
+  UserProfileResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 import { notesService } from '../services/notes';
 import { ModerationService } from '../services/moderation';
 import { ModerationQueueService } from '../services/moderation-queue';
+import { UserService } from '../services/user';
 
 type ErrorResponse = {
   status: 'error';
@@ -569,6 +571,39 @@ api.post('/actions/warn', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to send warning',
+      },
+      500
+    );
+  }
+});
+
+// User History & Reputation Endpoint
+api.get('/user/:username', async (c) => {
+  const username = c.req.param('username');
+
+  if (!username) {
+    return c.json<ErrorResponse>(
+      { status: 'error', message: 'username is required' },
+      400
+    );
+  }
+
+  try {
+    const subreddit = await reddit.getCurrentSubreddit();
+    const subredditName = subreddit.name;
+
+    const profile = await UserService.getUserProfile(username, subredditName);
+
+    return c.json<UserProfileResponse>({
+      type: 'user-profile',
+      profile,
+    });
+  } catch (error) {
+    console.error(`Error fetching user profile for ${username}:`, error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch user profile',
       },
       500
     );

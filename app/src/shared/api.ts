@@ -162,3 +162,36 @@ export type ModerationActionResponse = {
   action: 'approve' | 'remove' | 'warn';
   postId: string;
 };
+
+// User History & Reputation Types
+export type UserReputation = {
+  username: string;
+  accountAge: number;
+  linkKarma: number;
+  commentKarma: number;
+  isVerified: boolean;
+  isSuspended: boolean;
+};
+
+export type UserModerationHistory = {
+  totalRemoved: number;
+  totalWarnings: number;
+  recentRemovals: Array<{
+    postId: string;
+    title: string;
+    removedAt: number;
+  }>;
+  previousNotes: string[];
+};
+
+export type UserProfile = {
+  reputation: UserReputation;
+  modHistory: UserModerationHistory;
+  riskLevel: 'low' | 'medium' | 'high';
+  lastSeenActivity: number;
+};
+
+export type UserProfileResponse = {
+  type: 'user-profile';
+  profile: UserProfile;
+};

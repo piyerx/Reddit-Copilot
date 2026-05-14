@@ -8,6 +8,7 @@ import { QueueCarousel } from './components/QueueCarousel';
 import { CommentsView } from './components/CommentsView';
 import { AISummary } from './components/AISummary';
 import { NotesPanel } from './components/NotesPanel';
+import { UserHistory } from './components/UserHistory';
 
 export const App = () => {
   const {
@@ -172,6 +173,9 @@ export const App = () => {
 
         {/* Comments */}
         <CommentsView comments={comments} loading={loading} />
+
+        {/* User History & Reputation */}
+        {currentItem && <UserHistory username={currentItem.author} />}
 
         {/* Notes Panel */}
         {currentItem && <NotesPanel postId={currentItem.postId} />}
