@@ -171,7 +171,9 @@ export class AIService {
           : 'No comments';
 
       const rulesText = subredditRules?.length
-        ? subredditRules.join('\n')
+        ? subredditRules
+            .map((rule, idx) => `${idx + 1}. ${rule}`)
+            .join('\n')
         : 'No specific rules provided';
 
       const prompt = `You are a Reddit moderation assistant. Analyze this post and determine if it violates subreddit rules.
@@ -190,18 +192,24 @@ ${rulesText}
 ${commentsText}
 
 **Your task:**
-1. Identify any rule violations (be specific)
+1. Identify any rule violations (reference the rule number and title)
 2. Rate confidence as a percentage (0-100)
 3. Suggest an action: approve, review, warn, or remove
-4. Provide brief reasoning
+4. Provide brief, specific reasoning explaining which rule is violated and why
 
 **Respond in this exact JSON format only:**
 {
   "summary": "one-sentence summary of the post",
-  "violatedRules": ["rule1", "rule2"],
-  "confidence": 65,
+  "violatedRules": [
+    {
+      "ruleNumber": 1,
+      "ruleTitle": "Rule title here",
+      "description": "Why this rule is violated"
+    }
+  ],
+  "confidence": 75,
   "suggestedAction": "remove",
-  "reasoning": "brief explanation of the decision"
+  "reasoning": "Specific explanation of the violation"
 }`;
 
       const result = await model.generateContent(prompt);
@@ -221,7 +229,14 @@ ${commentsText}
       return {
         summary: String(analysis.summary || '').slice(0, 200),
         violatedRules: Array.isArray(analysis.violatedRules)
-          ? analysis.violatedRules.map((r: string) => String(r).slice(0, 50))
+          ? analysis.violatedRules.map((r: any) => {
+              if (typeof r === 'string') return r;
+              return {
+                ruleNumber: parseInt(r.ruleNumber) || 0,
+                ruleTitle: String(r.ruleTitle || '').slice(0, 100),
+                description: String(r.description || '').slice(0, 200),
+              };
+            })
           : [],
         confidence: Math.max(
           0,

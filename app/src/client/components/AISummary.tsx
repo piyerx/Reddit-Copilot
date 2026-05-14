@@ -46,14 +46,32 @@ export const AISummary: React.FC<AISummaryProps> = ({
               <div className="mb-4 rounded bg-orange-100 p-3 dark:bg-orange-900/20">
                 <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-orange-700 dark:text-orange-300">
                   <AlertTriangle className="w-4 h-4" />
-                  Potential Issues
+                  Rule Violations
                 </p>
-                <ul className="space-y-1">
-                  {analysis.violatedRules.map((violation, idx) => (
-                    <li key={idx} className="text-xs text-orange-700 dark:text-orange-200">
-                      • {violation}
-                    </li>
-                  ))}
+                <ul className="space-y-2">
+                  {analysis.violatedRules.map((violation, idx) => {
+                    const isRuleObject = typeof violation === 'object' && violation !== null && 'ruleNumber' in violation;
+                    if (isRuleObject) {
+                      const rule = violation as { ruleNumber: number; ruleTitle: string; description?: string };
+                      return (
+                        <li key={idx} className="rounded bg-white/50 p-2 dark:bg-orange-900/30">
+                          <div className="text-xs font-bold text-orange-800 dark:text-orange-200">
+                            Rule {rule.ruleNumber}: {rule.ruleTitle}
+                          </div>
+                          {rule.description && (
+                            <div className="mt-1 text-xs text-orange-700 dark:text-orange-300">
+                              {rule.description}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    }
+                    return (
+                      <li key={idx} className="text-xs text-orange-700 dark:text-orange-200">
+                        • {String(violation)}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}

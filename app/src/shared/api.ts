@@ -52,9 +52,15 @@ export type ModComment = {
 };
 
 // AI Analysis Types
+export type ViolatedRule = {
+  ruleNumber: number;
+  ruleTitle: string;
+  description?: string;
+};
+
 export type AIAnalysis = {
   summary: string;
-  violatedRules: string[];
+  violatedRules: (string | ViolatedRule)[];
   confidence: number;
   suggestedAction: 'approve' | 'remove' | 'warn' | 'escalate' | 'review';
   reasoning: string;
@@ -139,4 +145,20 @@ export type LogDecisionRequest = {
 export type LogDecisionResponse = {
   type: 'decision-logged';
   log: DecisionLog;
+};
+
+// Moderation Action Types
+export type ModerationActionRequest = {
+  postId: string;
+  action: 'approve' | 'remove' | 'warn';
+  removalReason?: string;
+  warningMessage?: string;
+};
+
+export type ModerationActionResponse = {
+  type: 'action-result';
+  success: boolean;
+  message: string;
+  action: 'approve' | 'remove' | 'warn';
+  postId: string;
 };

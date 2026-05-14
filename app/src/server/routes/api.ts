@@ -18,9 +18,12 @@ import type {
   LogDecisionResponse,
   CreateNoteRequest,
   LogDecisionRequest,
+  ModerationActionResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 import { notesService } from '../services/notes';
+import { ModerationService } from '../services/moderation';
+import { ModerationQueueService } from '../services/moderation-queue';
 
 type ErrorResponse = {
   status: 'error';
@@ -111,29 +114,26 @@ api.post('/decrement', async (c) => {
 // Moderation Queue Endpoints
 api.get('/modqueue', async (c) => {
   try {
-    // Fetch real modqueue from current subreddit
-    const subreddit = await reddit.getCurrentSubreddit();
-    const modQueueListing = await subreddit.getModQueue({ limit: 25, type: 'all' });
-    const modQueuePosts = await modQueueListing.all();
+    // Support testing mode via query parameter (?testing=true)
+    const testingMode = c.req.query('testing') === 'true';
+    const verbose = c.req.query('verbose') === 'true';
 
-    const items: ModQueueItem[] = modQueuePosts.map((item) => {
-      const isPost = 'title' in item;
-      const reports: string[] = [];
-      const authorName = (item as any).authorName || 'deleted';
-
-      return {
-        id: item.id || '',
-        postId: item.id || '',
-        title: isPost ? ((item as any).title || 'Post') : `Comment by ${authorName}`,
-        author: authorName,
-        body: ((item as any).body || ''),
-        reports: reports,
-        reportCount: reports.length,
-        score: item.score || 0,
-        numComments: isPost ? ((item as any).numComments || 0) : 0,
-        createdAt: item.createdAt instanceof Date ? item.createdAt.getTime() : Date.now(),
-      } as ModQueueItem;
+    // Fetch moderation items from multiple sources
+    const { items, stats } = await ModerationQueueService.fetchModerationItems({
+      limit: 25,
+      testingMode,
+      verbose,
     });
+
+    if (verbose) {
+      console.log('[API] Modqueue fetch stats:', {
+        total: stats.totalItems,
+        reported: stats.reportedItems,
+        removed: stats.removedItems,
+        testing: stats.testingModeItems,
+        sources: stats.sources,
+      });
+    }
 
     return c.json<ModQueueResponse>({
       type: 'modqueue',
@@ -466,6 +466,109 @@ api.post('/decisions', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to log decision',
+      },
+      500
+    );
+  }
+});
+
+// Moderation Actions - Real Reddit API Integration
+api.post('/actions/approve', async (c) => {
+  try {
+    const { postId } = await c.req.json<{ postId: string }>();
+
+    if (!postId) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId is required' },
+        400
+      );
+    }
+
+    const result = await ModerationService.approveItem(postId);
+
+    return c.json<ModerationActionResponse>({
+      type: 'action-result',
+      success: result.success,
+      message: result.message,
+      action: 'approve',
+      postId,
+    });
+  } catch (error) {
+    console.error('Error approving item:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to approve item',
+      },
+      500
+    );
+  }
+});
+
+api.post('/actions/remove', async (c) => {
+  try {
+    const { postId, removalReason } = await c.req.json<{
+      postId: string;
+      removalReason?: string;
+    }>();
+
+    if (!postId) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId is required' },
+        400
+      );
+    }
+
+    const result = await ModerationService.removeItem(postId, removalReason);
+
+    return c.json<ModerationActionResponse>({
+      type: 'action-result',
+      success: result.success,
+      message: result.message,
+      action: 'remove',
+      postId,
+    });
+  } catch (error) {
+    console.error('Error removing item:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to remove item',
+      },
+      500
+    );
+  }
+});
+
+api.post('/actions/warn', async (c) => {
+  try {
+    const { postId, warningMessage } = await c.req.json<{
+      postId: string;
+      warningMessage: string;
+    }>();
+
+    if (!postId || !warningMessage) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId and warningMessage are required' },
+        400
+      );
+    }
+
+    const result = await ModerationService.warnUser(postId, warningMessage);
+
+    return c.json<ModerationActionResponse>({
+      type: 'action-result',
+      success: result.success,
+      message: result.message,
+      action: 'warn',
+      postId,
+    });
+  } catch (error) {
+    console.error('Error warning user:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to send warning',
       },
       500
     );

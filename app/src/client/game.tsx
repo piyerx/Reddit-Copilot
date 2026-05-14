@@ -1,8 +1,8 @@
 import './index.css';
 
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, XCircle, Loader } from 'lucide-react';
 import { useQueue } from './hooks/useQueue';
 import { QueueCarousel } from './components/QueueCarousel';
 import { CommentsView } from './components/CommentsView';
@@ -25,13 +25,54 @@ export const App = () => {
     hasPreviousItem,
   } = useQueue();
 
+  const [actionLoading, setActionLoading] = useState<'approve' | 'remove' | 'warn' | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
   const handleAction = async (
     action: 'approve' | 'remove' | 'warn' | 'escalate' | 'review'
   ) => {
     if (!currentItem) return;
 
+    setActionLoading(action as any);
+    setActionError(null);
+    setActionSuccess(null);
+
     try {
-      const reason = `${action.charAt(0).toUpperCase() + action.slice(1)} action taken via CoPilot`;
+      // Step 1: Perform the actual moderation action on Reddit
+      let actionEndpoint = '/api/actions/approve';
+      const actionBody: any = { postId: currentItem.postId };
+
+      if (action === 'remove') {
+        actionEndpoint = '/api/actions/remove';
+        // Generate removal reason from analysis
+        if (analysis?.reasoning) {
+          actionBody.removalReason = `Your post was removed for violating subreddit rules:\n\n${analysis.reasoning}`;
+        }
+      } else if (action === 'warn') {
+        actionEndpoint = '/api/actions/warn';
+        actionBody.warningMessage = analysis?.reasoning || 'Your post was flagged by the moderation team. Please review the subreddit rules.';
+      }
+
+      const actionResponse = await fetch(actionEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(actionBody),
+      });
+
+      if (!actionResponse.ok) {
+        const errorData = await actionResponse.json();
+        throw new Error(errorData.message || `Failed to ${action} item`);
+      }
+
+      const actionResult = await actionResponse.json();
+
+      if (!actionResult.success) {
+        throw new Error(actionResult.message || `Failed to ${action} item`);
+      }
+
+      // Step 2: Log the decision to our system
+      const reason = `${action.charAt(0).toUpperCase() + action.slice(1)} action taken via CoPilot. ${actionResult.message}`;
       await fetch('/api/decisions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,12 +85,24 @@ export const App = () => {
         }),
       });
 
-      // Move to next item after action
-      if (hasNextItem) {
-        goToNext();
-      }
+      // Step 3: Show success feedback
+      setActionSuccess(`Successfully ${action}d item`);
+
+      // Step 4: Move to next item after a brief delay
+      setTimeout(() => {
+        if (hasNextItem) {
+          goToNext();
+          setActionSuccess(null);
+        } else {
+          setActionSuccess('All items processed!');
+        }
+      }, 800);
     } catch (err) {
-      console.error('Error logging decision:', err);
+      const errorMsg = err instanceof Error ? err.message : `Failed to ${action} item`;
+      console.error(`Error ${action}ing item:`, err);
+      setActionError(errorMsg);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -122,6 +175,19 @@ export const App = () => {
 
         {/* Notes Panel */}
         {currentItem && <NotesPanel postId={currentItem.postId} />}
+
+        {/* Action Feedback Messages */}
+        {actionError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+            <p className="font-semibold">Action Failed</p>
+            <p className="text-xs mt-1">{actionError}</p>
+          </div>
+        )}
+        {actionSuccess && (
+          <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300">
+            <p className="font-semibold">✓ {actionSuccess}</p>
+          </div>
+        )}
       </div>
 
       {/* Sticky Action Bar */}
@@ -129,23 +195,38 @@ export const App = () => {
         <div className="mx-auto flex max-w-2xl gap-2">
           <button
             onClick={() => handleAction('approve')}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600"
+            disabled={actionLoading !== null || !currentItem}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-600"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            {actionLoading === 'approve' ? (
+              <Loader className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4" />
+            )}
             Approve
           </button>
           <button
             onClick={() => handleAction('warn')}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 dark:bg-orange-700 dark:hover:bg-orange-600"
+            disabled={actionLoading !== null || !currentItem}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-orange-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-orange-700 dark:hover:bg-orange-600"
           >
-            <AlertCircle className="w-4 h-4" />
+            {actionLoading === 'warn' ? (
+              <Loader className="w-4 h-4 animate-spin" />
+            ) : (
+              <AlertCircle className="w-4 h-4" />
+            )}
             Warn
           </button>
           <button
             onClick={() => handleAction('remove')}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 dark:bg-red-700 dark:hover:bg-red-600"
+            disabled={actionLoading !== null || !currentItem}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-700 dark:hover:bg-red-600"
           >
-            <XCircle className="w-4 h-4" />
+            {actionLoading === 'remove' ? (
+              <Loader className="w-4 h-4 animate-spin" />
+            ) : (
+              <XCircle className="w-4 h-4" />
+            )}
             Remove
           </button>
         </div>

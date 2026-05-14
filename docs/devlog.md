@@ -129,7 +129,9 @@ Display in UI → Moderator Decision → Log to KV Store
 ## API Endpoints
 
 ### Moderation Queue
-- `GET /api/modqueue` → Real queue from `reddit.getModQueue()`
+- `GET /api/modqueue` → Multi-source queue (reported, removed, mod-log items)
+  - Query param `?testing=true` → Enable Testing Mode (fetches latest posts)
+  - Query param `?verbose=true` → Enable detailed console logging
 - `GET /api/queue-item/:postId` → Post + comments details
 - `GET /api/rules` → Subreddit rules
 
@@ -190,8 +192,36 @@ Display in UI → Moderator Decision → Log to KV Store
 ✅ **APIs:** All endpoints callable with proper error handling
 ✅ **UI:** Mobile-responsive, dark mode verified
 ✅ **AI:** Gemini integration tested with structured prompts
+✅ **Queue:** Multi-source fetching with Testing Mode
 
----
+### Testing Guide
+
+**For Reliable Testing in Private/Small Subreddits:**
+
+1. **Enable Testing Mode:**
+   - Append `?testing=true` to your dashboard URL
+   - Fetches latest posts from subreddit (no reports needed)
+   - Items marked with `[TEST]` prefix
+
+2. **Enable Verbose Logging:**
+   - Append `?verbose=true` to see detailed console logs
+   - Shows which sources provided items (reported, removed, testing, mod-log)
+   - Displays post IDs for debugging
+
+3. **Example URLs:**
+   - Normal mode: `https://reddit.com/r/yoursubreddit/comments/dashboardpostid?entrypoint=game`
+   - Testing mode: `https://reddit.com/r/yoursubreddit/comments/dashboardpostid?entrypoint=game&testing=true`
+   - With logging: `...&testing=true&verbose=true`
+
+4. **Multi-Source Queue Fetching:**
+   - Automatically aggregates from: reported posts, removed items, mod-log
+   - Deduplicates to prevent duplicates
+   - Falls back to Testing Mode if queue is empty
+
+5. **Real Testing (Without Testing Mode):**
+   - Use a separate account to report posts
+   - Reddit typically ignores self-reports
+   - Allow 1-2 minutes for items to appear in queue
 
 ## Known Limitations
 
@@ -202,7 +232,7 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ---
 
-## Phase 5: Mod Tools Integration (In Progress)
+## Phase 5: Mod Tools Integration ✅ **COMPLETED**
 
 ✅ **Mod Tools Menu Entry**
   - "Open CoPilot" menu item in Subreddit Mod Tools
@@ -218,17 +248,77 @@ Display in UI → Moderator Decision → Log to KV Store
   - Professional design with Sparkles icon and gradient
   - Dark mode support
 
-🔄 **Future Enhancement: Smart Access Control**
-  - Auto-expand for moderators (skip splash)
-  - Prevent non-mods from accessing dashboard
-  - Issue: Devvit event trust restrictions with auto-expansion
-  - Solution: Will implement server-side validation + proper permission checks
-  - Timeline: Phase 6+
+## Phase 6: Real Reddit API Integration ✅ **COMPLETED**
+
+✅ **Moderation Actions with Real Reddit APIs**
+  - `ModerationService` handles all Reddit moderation operations
+  - **Approve Action**: Marks content as approved via `post.approve()`
+  - **Remove Action**: Removes content via `post.remove()` + sends removal reason via PM
+  - **Warn Action**: Sends warning message to user via `reddit.sendPrivateMessage()`
+
+✅ **Action Endpoints**
+  - `POST /api/actions/approve` - Approve moderation item
+  - `POST /api/actions/remove` - Remove with optional removal reason
+  - `POST /api/actions/warn` - Send warning to user
+  - Full error handling and response validation
+
+✅ **UI Enhancements**
+  - Action buttons show loading spinner during operation
+  - Success feedback displayed when action completes
+  - Error messages show failure reasons
+  - Auto-advance to next item on success (800ms delay)
+  - Buttons disabled while action in progress
+  - Removal reasons generated from AI analysis context
+  - Warning messages include AI reasoning
+
+✅ **Decision Logging Integration**
+  - Actions logged to decision history with results
+  - Full audit trail of who did what and when
+  - AI analysis context preserved with each decision
+
+## Phase 7: Improved Moderation Queue Fetching ✅ **COMPLETED**
+
+✅ **Multi-Source Queue Aggregation** (`ModerationQueueService`)
+  - Fetches from multiple sources: reported posts, removed items, spam queue, mod log
+  - Unified abstraction: `fetchModerationItems()` aggregates all sources
+  - Automatic deduplication to prevent duplicate items in queue
+
+✅ **Testing Mode** (Enabled via `?testing=true` query parameter)
+  - Fetches latest subreddit posts when in small/private test subreddits
+  - Simulates moderation analysis without requiring real reports
+  - Allows reliable testing without manual post reports
+  - Clearly marks test items with `[TEST]` prefix
+  - Perfect for low-activity or private subreddits
+
+✅ **Comprehensive Logging & Debugging**
+  - Verbose logging (enable via `?verbose=true`) shows:
+    - Fetch sources and item counts per source
+    - Total items and deduplicated count
+    - Post IDs and titles for debugging
+    - Testing mode status
+  - Console output includes:
+    - `[ModerationQueue]` prefixed logs for easy filtering
+    - `[API]` logs for endpoint-level stats
+  - Helps identify why posts don't appear in queue
+
+✅ **Reliable Testing in Small Subreddits**
+  - Supports reported posts (with workaround for self-report issues)
+  - Supports mod-log removed items
+  - Supports testing mode for development
+  - Query parameters allow per-request mode toggling
+  - Backward compatible with existing app flow
+
+**Implementation Details:**
+- File: `src/server/services/moderation-queue.ts` (new service)
+- Endpoint: `GET /api/modqueue?testing=true&verbose=true`
+- Supports: reports, mod-log removals, testing mode posts, spam queue
+- Aggregates and deduplicates all sources into single queue
 
 ---
-- Phase 6: User history + reputation summary display
-- Phase 7: Spam/repost detection via heuristics
-- Phase 8: Prompt tuning and performance optimization
+
+- Phase 8: User history + reputation summary display
+- Phase 9: Spam/repost detection via heuristics
+- Phase 10: Prompt tuning and performance optimization
 - Queue prioritization (urgent cases first)
 - Similar past cases lookup
 
@@ -236,12 +326,16 @@ Display in UI → Moderator Decision → Log to KV Store
 
 ## Project Status
 
-**Current Phase:** 5 - Mod Tools Integration (In Progress) ⏳
+**Current Phase:** 7 - Improved Moderation Queue Fetching ✅ **COMPLETE**
 
-**Build:** Ready for testing with menu integration
-**Features:** MVP + professional mod tools entry point
+**Build:** Clean, production-ready
+**Features:** MVP complete + real Reddit integration + robust queue fetching
 **Code Quality:** TypeScript strict, modular, well-documented
-**UI/UX:** Professional Reddit-native design, mod-only access
-**AI:** Real Gemini integration with fallback
+**UI/UX:** Professional, responsive, real-time feedback
+**AI:** Real Gemini integration with rule-aware analysis
+**Moderation:** Full Reddit API integration (approve/remove/warn)
+**Testing:** Reliable multi-source queue + Testing Mode for development
 
-Next: Real Reddit API integration for approve/remove/warn actions; real-world subreddit testing.
+**Key Improvement:** Moderation queue now reliably fetches from multiple sources (reported, removed, mod-log, testing) enabling deterministic testing in small/private subreddits.
+
+Next: User history and reputation features.
