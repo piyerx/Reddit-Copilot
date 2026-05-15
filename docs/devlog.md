@@ -1,368 +1,150 @@
-FIX Phase 8: User data is not being fetched. Karma and account age is always 0
+NOTE: 1. Fix user account age and karma not loading up in the dashboard user summary section. 2. Add link to original post in the post title in dashboard.
 
 # Devlog: Reddit Mod Co-Pilot
 
-An AI-powered moderation assistant built with Devvit, Gemini 1.5 Flash, and React.
+AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
 
 ## Project Overview
 
-**Vision:** Create an intelligent moderation co-pilot that helps Reddit moderators make faster, more consistent decisions while keeping humans fully in control.
+**Vision:** Intelligent moderation co-pilot for faster, consistent decisions while keeping humans in control.
 
-**Core Problem:** Reddit moderators face:
-- Queue overload and repetitive reviews
-- Slow, manual moderation workflows
-- AutoModerator's lack of context awareness
-- Difficulty coordinating decisions across teams
+**Problem Solved:** Queue overload, repetitive reviews, context-poor automation, team coordination gaps.
 
-**Solution:** AI-assisted moderation interface that summarizes posts, suggests rule violations, generates removal reasons, and maintains moderation history.
+**Key Features:** AI summaries, rule violation detection, removal reason generation, moderation history tracking, user reputation display.
 
 ---
 
 ## Architecture
 
-### Tech Stack
-- **Frontend:** React 19 with Devvit Custom Post Components
-- **Backend:** TypeScript with Hono server framework
-- **AI:** Gemini 1.5 Flash API (auto-detects via GOOGLE_API_KEY)
-- **Storage:** Devvit KV Store (Redis)
-- **Icons:** Lucide React (premium SVG)
-- **Styling:** Tailwind CSS 4 with Reddit-native design
+**Tech Stack:** React 19 | TypeScript + Hono | Gemini 1.5 Flash | Devvit KV Store | Tailwind CSS 4
 
-### Data Flow
-```
-Moderation Queue → Fetch Real Posts/Comments → AI Analysis Layer
-     ↓
-Generate Summary + Rule Matches + Confidence
-     ↓
-Display in UI → Moderator Decision → Log to KV Store
-```
+**Data Flow:** Queue → Fetch Posts/Comments → AI Analysis → UI → Decision Logging → KV Store
 
 ---
 
 ## Completed Features
 
-### Phase 1-2: Core Infrastructure
-✅ Devvit app setup with TypeScript/Vite
-✅ Client/server/shared code separation
-✅ Mobile-first responsive UI (single-column layout)
-✅ Dark mode support throughout
+### Phase 1-2: Foundation ✅
+- Devvit app + TypeScript/Vite setup
+- Client/server/shared code separation
+- Mobile-first responsive UI (dark mode supported)
 
-### Phase 3: AI Integration
-✅ **Gemini 1.5 Flash Integration**
-  - Real-time post analysis with structured JSON prompts
-  - Automatic rule violation detection
-  - Confidence scoring (0-100%)
-  - Suggested actions: approve/remove/warn/escalate/review
-  - Professional removal reason generation
+### Phase 3: AI Integration ✅
+- **Gemini 1.5 Flash:** Real-time analysis, rule detection, confidence scoring, action suggestions
+- **Fallback Engine:** Demo mode, API error handling, graceful degradation
+- **Rules System:** Dynamic subreddit rule fetching, context-aware analysis
 
-✅ **Fallback Heuristic Engine**
-  - Graceful degradation when API unavailable
-  - Demo analysis mode for development
-  - Rate-limit handling (60 req/min free tier)
+### Phase 3.5: Real Data Integration ✅
+- Real Devvit API calls: `getModQueue()`, `getRules()`, `getComments()`, `getPostById()`
+- Proper type handling (`authorName`, `shortName` properties)
+- Dynamic rule context passed to Gemini
 
-### Phase 3+: Real Data Integration
-✅ **Real Devvit API Calls**
-  - `reddit.getModQueue()` → Fetch flagged posts/comments
-  - `reddit.getRules()` → Fetch subreddit-specific rules
-  - `reddit.getComments()` → Load comment context
-  - `reddit.getPostById()` → Fetch post details
-  - Proper type casting with Devvit's `authorName`, `shortName` properties
+### Phase 4: Notes & Decision Logging ✅
+- Create/read/update/delete post-level notes
+- Moderation decision history with timestamps and moderator attribution
+- Persistent KV Store (`notes:${postId}`, `decisions:${postId}`)
+- NotesPanel component with tabbed interface (Notes | History)
 
-✅ **Rules System**
-  - Fetch real subreddit rules dynamically
-  - Pass rules to Gemini for context-aware analysis
-  - `/api/rules` endpoint for rule retrieval
+### Phase 5: Mod Tools Integration ✅
+- "Open CoPilot" menu entry in Subreddit Mod Tools
+- Persistent dashboard post (stored in Redis)
+- Splash screen with community-contextual welcome
+- Direct navigation to game interface
 
-### Phase 4: Notes & Decision Logging
-✅ **Post-Level Notes System**
-  - Create, read, update, delete notes per post
-  - Mod notes persist in KV Store
-  - Team coordination and decision memory
+### Phase 6: Real Moderation Actions ✅
+- **ModerationService** abstracts Reddit API operations
+- Actions: approve, remove (with reason PM), warn (with message)
+- Decision logging with full audit trail
+- UI feedback: loading state, success/error messages, auto-advance
 
-✅ **Decision Log**
-  - Track all moderation actions (approve/remove/warn/escalate)
-  - Store AI analysis context with each decision
-  - Moderator attribution and timestamps
-  - Full moderation history per post
+### Phase 7: Improved Queue Fetching ✅
+- **ModerationQueueService:** Multi-source aggregation (reported, removed, mod-log, spam)
+- **Testing Mode** (`?testing=true`): Fetch latest posts for small subreddits
+- **Verbose Logging** (`?verbose=true`): Debug source tracking and deduplication
+- Auto-deduplication and unified queue interface
 
-✅ **NotesPanel Component**
-  - Tabbed interface: Notes | Decision History
-  - Add notes with keystroke efficiency
-  - View past decisions with AI confidence/summary
-  - Displays who made what decision and when
-
----
-
-## UI/UX Implementation
-
-### Design System
-- Reddit-native background (#dae0e6 light, #111c1c dark)
-- Professional, modern interface without emojis
-- Consistent spacing, shadows, and typography
-- Sticky bottom action bar for quick moderation
-
-### Key Components
-1. **QueueCarousel:** Displays current moderation item
-   - Navigation (prev/next) with boundary checks
-   - Post title, body, reports, score, comments count
-2. **AISummary:** AI analysis results
-   - Summary + reasoning
-   - Rule violations with AlertTriangle icon
-   - Confidence meter (gradient progress bar)
-   - Action suggestion (colored pill badge)
-3. **CommentsView:** Top comments context
-   - Comment author, body, score
-   - TrendingUp icons for vote scores
-4. **NotesPanel:** Post-level coordination
-   - Add moderator notes
-   - View decision history
-   - Track action trails
-
-### Icon Usage (Lucide React)
-- Bot → CoPilot Analysis header
-- AlertTriangle → Rule violations
-- ChevronLeft/Right → Navigation
-- MessageSquare → Comments section
-- TrendingUp → Confidence/scores
-- CheckCircle2/AlertCircle/XCircle → Action buttons
+### Phase 8: User History & Reputation ✅
+- **UserService:** Fetch karma, account age, suspension status, moderation history
+- **Risk Scoring:** Account age + karma + removal history = risk level (low/medium/high)
+- **UserHistory Component:** Display reputation card with recent removals, risk badge
+- Integrated into main moderation flow for quick context
 
 ---
 
 ## API Endpoints
 
-### Moderation Queue
-- `GET /api/modqueue` → Multi-source queue (reported, removed, mod-log items)
-  - Query param `?testing=true` → Enable Testing Mode (fetches latest posts)
-  - Query param `?verbose=true` → Enable detailed console logging
-- `GET /api/queue-item/:postId` → Post + comments details
-- `GET /api/rules` → Subreddit rules
+**Queue & Rules:**
+- `GET /api/modqueue?testing=true&verbose=true` — Multi-source queue aggregation
+- `GET /api/queue-item/:postId` — Post + comments details
+- `GET /api/rules` — Subreddit rules
 
-### AI Analysis
-- `POST /api/analyze` → Gemini analysis with real rules context
-- `POST /api/removal-reason` → Generate removal message
+**AI Analysis:**
+- `POST /api/analyze` — Gemini analysis with rules context
+- `POST /api/removal-reason` — Generate removal message
 
-### Notes & Decisions (Phase 4)
-- `GET /api/notes/:postId` → Fetch post notes
-- `POST /api/notes` → Create note
-- `GET /api/decisions/:postId` → Fetch decision log
-- `POST /api/decisions` → Log moderation action
+**Moderation Actions:**
+- `POST /api/actions/approve` — Approve post
+- `POST /api/actions/remove` — Remove with reason PM
+- `POST /api/actions/warn` — Send user warning
 
----
+**Notes & Decisions:**
+- `GET /api/notes/:postId` — Fetch post notes
+- `POST /api/notes` — Create note
+- `GET /api/decisions/:postId` — Fetch decision log
+- `POST /api/decisions` — Log moderation action
 
-## Service Layer
-
-### AIService (`ai.ts`)
-- Modular provider abstraction (demo/Gemini/OpenAI)
-- `analyzePost()` with subreddit rules context
-- `generateRemovalReason()` with rule references
-- Automatic fallback to demo on API errors
-
-### NotesService (`notes.ts`)
-- CRUD operations on post notes
-- Decision log tracking
-- Redis KV Store persistence
-- Timestamp and moderator attribution
+**User:**
+- `GET /api/user/:username` — User reputation + moderation history
 
 ---
 
 ## Key Implementation Details
 
-### Real Data Handling
-- Devvit API uses `authorName` (not `author.name`)
-- Rule objects have `shortName` property (not `title`)
-- PostId properly typed as `t3_${string}` template literal
-- Graceful null/undefined handling throughout
+**Real Data Handling:**
+- Devvit API: `authorName` (not `author.name`), `shortName` for rules
+- PostId typed as `t3_${string}`
+- Graceful null/undefined handling
 
-### Gemini Integration
-- Structured JSON prompt for reliable responses
-- Auto-detects GOOGLE_API_KEY from environment
-- Free tier: 60 requests/minute (sufficient for hackathon)
-- Rate limit handling + graceful degradation
+**Gemini Integration:**
+- Structured JSON prompts for reliable responses
+- Auto-detects `GOOGLE_API_KEY`
+- Free tier: 60 req/min (sufficient for hackathon)
+- Automatic fallback to demo mode on API errors
 
-### KV Store Usage
-- `notes:${postId}` → Array of post notes
-- `decisions:${postId}` → Array of moderation decisions
-- Atomic operations with JSON serialization
-- Full CRUD with timestamps
+**KV Store:** `notes:${postId}`, `decisions:${postId}` — atomic JSON operations
+
+**Services:**
+- `AIService`: Provider abstraction (demo/Gemini/OpenAI), context-aware analysis
+- `NotesService`: CRUD + timestamp/attribution
+- `ModerationService`: Approve, remove, warn operations
+- `ModerationQueueService`: Multi-source aggregation, deduplication
+- `UserService`: Reputation + history fetching, risk scoring
 
 ---
 
-## Testing Status
+## Testing
 
-✅ **Build:** Clean compile (TypeScript strict mode)
-✅ **Types:** Full type safety across API contracts
-✅ **APIs:** All endpoints callable with proper error handling
-✅ **UI:** Mobile-responsive, dark mode verified
-✅ **AI:** Gemini integration tested with structured prompts
-✅ **Queue:** Multi-source fetching with Testing Mode
+**Build Status:** ✅ Clean compile (strict TypeScript), full type safety
 
-### Testing Guide
+**Testing Modes:**
+1. **Normal Mode:** Real moderation queue (reports, removals, mod-log)
+2. **Testing Mode** (`?testing=true`): Latest posts from subreddit (for small/private subreddits)
+3. **Verbose Logging** (`?verbose=true`): Debug source tracking
 
-**For Reliable Testing in Private/Small Subreddits:**
+**Testing Tips:**
+- Use Testing Mode for reliable testing without manual reports
+- Append params to dashboard URL: `...&testing=true&verbose=true`
+- Check browser console for `[ModerationQueue]` and `[API]` logs
+- Test account: Report posts or use mod-log removals for real queue
 
-1. **Enable Testing Mode:**
-   - Append `?testing=true` to your dashboard URL
-   - Fetches latest posts from subreddit (no reports needed)
-   - Items marked with `[TEST]` prefix
-
-2. **Enable Verbose Logging:**
-   - Append `?verbose=true` to see detailed console logs
-   - Shows which sources provided items (reported, removed, testing, mod-log)
-   - Displays post IDs for debugging
-
-3. **Example URLs:**
-   - Normal mode: `https://reddit.com/r/yoursubreddit/comments/dashboardpostid?entrypoint=game`
-   - Testing mode: `https://reddit.com/r/yoursubreddit/comments/dashboardpostid?entrypoint=game&testing=true`
-   - With logging: `...&testing=true&verbose=true`
-
-4. **Multi-Source Queue Fetching:**
-   - Automatically aggregates from: reported posts, removed items, mod-log
-   - Deduplicates to prevent duplicates
-   - Falls back to Testing Mode if queue is empty
-
-5. **Real Testing (Without Testing Mode):**
-   - Use a separate account to report posts
-   - Reddit typically ignores self-reports
-   - Allow 1-2 minutes for items to appear in queue
+---
 
 ## Known Limitations
 
-1. **Private Subreddit Auth:** App requires mod permissions to fetch real queue
-2. **AI Confidence:** Gemini 1.5 Flash occasionally misses nuanced violations
-3. **UI Customization:** Limited to Devvit custom post components
-4. **Performance:** Initial queue load depends on subreddit modqueue size
-
----
-
-## Phase 5: Mod Tools Integration ✅ **COMPLETED**
-
-✅ **Mod Tools Menu Entry**
-  - "Open CoPilot" menu item in Subreddit Mod Tools
-  - Single persistent dashboard post (created on app install)
-  - Post ID stored in Redis for efficient reuse
-  - Menu navigates directly to game entrypoint (bypasses splash)
-  - Professional mod-only entry point
-
-✅ **Splash Screen (Public/User-Facing)**
-  - Community-contextual welcome screen
-  - "Access Moderation Queue" button → expands to dashboard
-  - Feature overview (AI analysis, removal reasons, team coordination)
-  - Professional design with Sparkles icon and gradient
-  - Dark mode support
-
-## Phase 6: Real Reddit API Integration ✅ **COMPLETED**
-
-✅ **Moderation Actions with Real Reddit APIs**
-  - `ModerationService` handles all Reddit moderation operations
-  - **Approve Action**: Marks content as approved via `post.approve()`
-  - **Remove Action**: Removes content via `post.remove()` + sends removal reason via PM
-  - **Warn Action**: Sends warning message to user via `reddit.sendPrivateMessage()`
-
-✅ **Action Endpoints**
-  - `POST /api/actions/approve` - Approve moderation item
-  - `POST /api/actions/remove` - Remove with optional removal reason
-  - `POST /api/actions/warn` - Send warning to user
-  - Full error handling and response validation
-
-✅ **UI Enhancements**
-  - Action buttons show loading spinner during operation
-  - Success feedback displayed when action completes
-  - Error messages show failure reasons
-  - Auto-advance to next item on success (800ms delay)
-  - Buttons disabled while action in progress
-  - Removal reasons generated from AI analysis context
-  - Warning messages include AI reasoning
-
-✅ **Decision Logging Integration**
-  - Actions logged to decision history with results
-  - Full audit trail of who did what and when
-  - AI analysis context preserved with each decision
-
-## Phase 7: Improved Moderation Queue Fetching ✅ **COMPLETED**
-
-✅ **Multi-Source Queue Aggregation** (`ModerationQueueService`)
-  - Fetches from multiple sources: reported posts, removed items, spam queue, mod log
-  - Unified abstraction: `fetchModerationItems()` aggregates all sources
-  - Automatic deduplication to prevent duplicate items in queue
-
-✅ **Testing Mode** (Enabled via `?testing=true` query parameter)
-  - Fetches latest subreddit posts when in small/private test subreddits
-  - Simulates moderation analysis without requiring real reports
-  - Allows reliable testing without manual post reports
-  - Clearly marks test items with `[TEST]` prefix
-  - Perfect for low-activity or private subreddits
-
-✅ **Comprehensive Logging & Debugging**
-  - Verbose logging (enable via `?verbose=true`) shows:
-    - Fetch sources and item counts per source
-    - Total items and deduplicated count
-    - Post IDs and titles for debugging
-    - Testing mode status
-  - Console output includes:
-    - `[ModerationQueue]` prefixed logs for easy filtering
-    - `[API]` logs for endpoint-level stats
-  - Helps identify why posts don't appear in queue
-
-✅ **Reliable Testing in Small Subreddits**
-  - Supports reported posts (with workaround for self-report issues)
-  - Supports mod-log removed items
-  - Supports testing mode for development
-  - Query parameters allow per-request mode toggling
-  - Backward compatible with existing app flow
-
-**Implementation Details:**
-- File: `src/server/services/moderation-queue.ts` (new service)
-- Endpoint: `GET /api/modqueue?testing=true&verbose=true`
-- Supports: reports, mod-log removals, testing mode posts, spam queue
-- Aggregates and deduplicates all sources into single queue
-
----
-
-## Phase 8: User History & Reputation Display ✅ **COMPLETED**
-
-✅ **UserService Implementation** (`services/user.ts`)
-  - Fetch user reputation and account metrics (karma, age, verification status)
-  - Pull user moderation history from mod log (removals, warnings)
-  - Calculate user risk level based on account age, karma, and moderation history
-  - Automatic risk categorization: low/medium/high
-
-✅ **User Profile API Endpoint**
-  - `GET /api/user/:username` → Complete user profile with reputation + history
-  - Returns: account age, karma, suspension status, removal count, warning count, recent removals
-  - Error handling with graceful degradation
-
-✅ **User History UI Component** (`UserHistory.tsx`)
-  - Professional reputation display card
-  - Risk level badge (low/medium/high) with color coding
-  - Account stats: age, karma, verification status
-  - Moderation history: total removals and warnings
-  - Recent removals section (last 3 with dates)
-  - Suspension warning indicator
-  - Responsive dark mode support
-  - Loading and error states
-
-✅ **Integration into Moderation Flow**
-  - UserHistory component added to main game view
-  - Displays automatically for current post author
-  - Shows directly below comments for quick context
-  - Helps moderators make risk-informed decisions
-  - No impact on existing components or workflow
-
-**Key Features:**
-- Account age calculation (days since creation)
-- Karma aggregation (comment + link karma)
-- Risk scoring algorithm based on account metrics
-- Recent removal tracking with dates
-- Verification and suspension indicators
-- Color-coded risk levels for quick visual assessment
-
-**Data Points Displayed:**
-- Account age and verification status
-- Total comment + link karma
-- Previous removal count
-- Warning count
-- Recent removal titles and dates
-- Account suspension status (if applicable)
+- **Private Subreddit Auth:** App requires mod permissions for real queue
+- **AI Accuracy:** Gemini 1.5 Flash occasionally misses nuanced violations
+- **Performance:** Initial queue load depends on subreddit modqueue size
+- **UI:** Limited to Devvit custom post components
 
 ---
 
