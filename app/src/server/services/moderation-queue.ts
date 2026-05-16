@@ -64,7 +64,7 @@ export class ModerationQueueService {
         const reportedItems = await modQueueListing.all();
 
         const reportedMapped = reportedItems.map((item) =>
-          this.mapItemToModQueueItem(item, 'reported')
+          this.mapItemToModQueueItem(item, 'reported', subName)
         );
         const reportedFiltered = reportedMapped.filter((item) => {
           if (itemSet.has(item.id)) {
@@ -102,7 +102,7 @@ export class ModerationQueueService {
           const removedMapped = removedLogs
             .map((log) => {
               try {
-                return this.mapLogToModQueueItem(log, 'removed');
+                return this.mapLogToModQueueItem(log, 'removed', subName);
               } catch {
                 return null;
               }
@@ -136,7 +136,7 @@ export class ModerationQueueService {
           const newPosts = await newListing.all();
 
           const testingMapped = newPosts
-            .map((post) => this.mapItemToModQueueItem(post, 'testing'))
+            .map((post) => this.mapItemToModQueueItem(post, 'testing', subName))
             .filter((item) => {
               if (itemSet.has(item.id)) {
                 stats.deduped++;
@@ -181,7 +181,8 @@ export class ModerationQueueService {
    */
   private static mapItemToModQueueItem(
     item: any,
-    source: 'reported' | 'removed' | 'testing' = 'reported'
+    source: 'reported' | 'removed' | 'testing' = 'reported',
+    subredditName?: string
   ): ModQueueItem {
     const isPost = 'title' in item;
     const authorName = item.authorName || 'deleted';
@@ -197,11 +198,13 @@ export class ModerationQueueService {
       title: titlePrefix + (isPost ? (item.title || 'Post') : `Comment by ${authorName}`),
       author: authorName,
       body: item.body || '',
+      url: item.url || '',
       reports: item.reports || [],
       reportCount: (item.reports || []).length,
       score: item.score || 0,
       numComments: isPost ? (item.numComments || 0) : 0,
       createdAt: item.createdAt instanceof Date ? item.createdAt.getTime() : Date.now(),
+      subreddit: subredditName,
       metadata: {
         source,
         fetchedFrom: `${source}${sourceLabel}`,
@@ -212,7 +215,11 @@ export class ModerationQueueService {
   /**
    * Map a moderation log entry to ModQueueItem
    */
-  private static mapLogToModQueueItem(log: any, source: 'removed' = 'removed'): ModQueueItem | null {
+  private static mapLogToModQueueItem(
+    log: any,
+    source: 'removed' = 'removed',
+    subredditName?: string
+  ): ModQueueItem | null {
     try {
       const targetId = log.targetId || '';
       const targetAuthor = log.targetAuthor || 'deleted';
@@ -224,11 +231,13 @@ export class ModerationQueueService {
         title: `[Mod Removed] ${targetTitle}`,
         author: targetAuthor,
         body: '',
+        url: log.targetUrl || '',
         reports: [],
         reportCount: 0,
         score: 0,
         numComments: 0,
         createdAt: log.createdAt instanceof Date ? log.createdAt.getTime() : Date.now(),
+        subreddit: subredditName,
         metadata: {
           source,
           fetchedFrom: 'moderation-log',

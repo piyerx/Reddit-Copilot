@@ -29,6 +29,19 @@ const getRiskBadgeColor = (riskLevel: 'low' | 'medium' | 'high') => {
   }
 };
 
+const formatAccountAge = (accountAge: number | null) => {
+  if (accountAge === null) {
+    return 'N/A';
+  }
+
+  if (accountAge >= 365) {
+    const years = accountAge / 365;
+    return `${years.toFixed(1)} year${years >= 2 ? 's' : ''}`;
+  }
+
+  return `${accountAge} day${accountAge === 1 ? '' : 's'}`;
+};
+
 export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = false }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +124,7 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
           <div className="rounded-lg bg-white dark:bg-slate-700/50 p-3">
             <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Account Age</p>
             <p className="text-base font-bold text-gray-900 dark:text-white mt-1">
-              {reputation.accountAge} days
+              {formatAccountAge(reputation.accountAge)}
             </p>
           </div>
           <div className="rounded-lg bg-white dark:bg-slate-700/50 p-3">

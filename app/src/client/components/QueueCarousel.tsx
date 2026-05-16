@@ -23,15 +23,33 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
 }) => {
   if (!item) return null;
 
+  // Construct Reddit post URL
+  const postUrl = item.url
+    ? item.url
+    : item.subreddit
+      ? `https://reddit.com/r/${item.subreddit}/comments/${item.postId.replace('t3_', '')}`
+      : null;
+
   return (
     <div className="card overflow-hidden">
       <div className="p-6">
         {/* Post Header */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-              {item.title}
-            </h2>
+            {postUrl ? (
+              <a
+                href={postUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-lg font-bold text-blue-600 dark:text-blue-400 hover:underline mb-2 inline-block"
+              >
+                {item.title}
+              </a>
+            ) : (
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                {item.title}
+              </h2>
+            )}
             <p className="text-sm text-slate-600 dark:text-slate-400">
               Posted by u/{item.author}
             </p>
@@ -41,7 +59,7 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
             </div>
           </div>
           {item.reportCount > 0 && (
-            <span className="ml-4 flex-shrink-0 rounded-full bg-gradient-to-r from-red-500 to-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+            <span className="ml-4 shrink-0 rounded-full bg-linear-to-r from-red-500 to-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-md">
               {item.reportCount} reports
             </span>
           )}

@@ -24,11 +24,13 @@ export type ModQueueItem = {
   title: string;
   author: string;
   body: string;
+  url?: string;
   reports: string[];
   reportCount: number;
   score: number;
   numComments: number;
   createdAt: number;
+  subreddit?: string;
 };
 
 export type ModQueueResponse = {
@@ -166,7 +168,7 @@ export type ModerationActionResponse = {
 // User History & Reputation Types
 export type UserReputation = {
   username: string;
-  accountAge: number;
+  accountAge: number | null;
   linkKarma: number;
   commentKarma: number;
   isVerified: boolean;
@@ -194,4 +196,17 @@ export type UserProfile = {
 export type UserProfileResponse = {
   type: 'user-profile';
   profile: UserProfile;
+};
+
+// Spam Detection Types
+export type SpamIndicator = {
+  type: 'spam' | 'repost' | 'suspicious' | 'clean';
+  confidence: number;
+  reasons: string[];
+  score: number;
+};
+
+export type SpamAnalysisResponse = {
+  type: 'spam-analysis';
+  analysis: SpamIndicator;
 };

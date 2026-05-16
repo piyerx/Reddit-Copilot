@@ -20,12 +20,14 @@ import type {
   LogDecisionRequest,
   ModerationActionResponse,
   UserProfileResponse,
+  SpamAnalysisResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 import { notesService } from '../services/notes';
 import { ModerationService } from '../services/moderation';
 import { ModerationQueueService } from '../services/moderation-queue';
 import { UserService } from '../services/user';
+import { SpamDetectionService } from '../services/spam-detection';
 
 type ErrorResponse = {
   status: 'error';
@@ -203,6 +205,7 @@ api.get('/queue-item/:postId', async (c) => {
       );
     }
 
+    const subreddit = await reddit.getCurrentSubreddit();
     const reports: string[] = [];
     const item: ModQueueItem = {
       id: post.id || '',
@@ -210,11 +213,13 @@ api.get('/queue-item/:postId', async (c) => {
       title: (post as any).title || 'Post',
       author: (post as any).authorName || 'deleted',
       body: (post as any).body || '',
+      url: (post as any).url || '',
       reports: reports,
       reportCount: reports.length,
       score: post.score || 0,
       numComments: (post as any).numComments || 0,
       createdAt: post.createdAt instanceof Date ? post.createdAt.getTime() : Date.now(),
+      subreddit: subreddit.name,
     };
 
     // Fetch top comments
@@ -604,6 +609,48 @@ api.get('/user/:username', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to fetch user profile',
+      },
+      500
+    );
+  }
+});
+
+// Spam & Repost Detection Endpoint
+api.post('/spam-check', async (c) => {
+  try {
+    const { title, body, author, url, postId } = await c.req.json<{
+      title: string;
+      body: string;
+      author: string;
+      url?: string;
+      postId: string;
+    }>();
+
+    if (!title || !author || !postId) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'title, author, and postId are required' },
+        400
+      );
+    }
+
+    const subreddit = await reddit.getCurrentSubreddit();
+    const subredditName = subreddit.name;
+
+    const analysis = await SpamDetectionService.analyzePost(
+      { title, body: body || '', author, url, postId },
+      subredditName
+    );
+
+    return c.json<SpamAnalysisResponse>({
+      type: 'spam-analysis',
+      analysis,
+    });
+  } catch (error) {
+    console.error('Error checking spam:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to check spam',
       },
       500
     );

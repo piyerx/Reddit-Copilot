@@ -9,6 +9,7 @@ import { CommentsView } from './components/CommentsView';
 import { AISummary } from './components/AISummary';
 import { NotesPanel } from './components/NotesPanel';
 import { UserHistory } from './components/UserHistory';
+import { SpamIndicators } from './components/SpamIndicators';
 
 export const App = () => {
   const {
@@ -179,6 +180,19 @@ export const App = () => {
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">AI Analysis</h2>
           <AISummary analysis={analysis} loading={analysisLoading} />
         </section>
+
+        {/* Spam & Repost Detection */}
+        {currentItem && (
+          <section>
+            <SpamIndicators
+              postId={currentItem.postId}
+              title={currentItem.title}
+              body={currentItem.body}
+              author={currentItem.author}
+              url={currentItem.url}
+            />
+          </section>
+        )}
 
         {/* Comments */}
         <section className="space-y-2">
