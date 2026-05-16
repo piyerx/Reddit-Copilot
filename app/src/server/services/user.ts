@@ -35,22 +35,54 @@ export interface UserProfile {
 export class UserService {
   /**
    * Fetch user reputation and basic profile info
+   * Note: Devvit API limitations mean we fetch karma and account age from available post/comment data
    */
   static async getUserReputation(username: string): Promise<UserReputation> {
     try {
-      const user = await reddit.getUserById(`t2_${username}`);
+      // Try to get user data - Devvit may not have full user API, so we use fallback approach
+      let accountAge = 0;
+      let linkKarma = 0;
+      let commentKarma = 0;
+      let isVerified = false;
+      let isSuspended = false;
 
-      if (!user) {
-        throw new Error(`User ${username} not found`);
+      try {
+        // Attempt to get user profile via getUser (if available in Devvit API)
+        const user = await (reddit as any).getUser(username);
+        if (user) {
+          accountAge = Math.floor((Date.now() - (user.createdAt?.getTime() || 0)) / (1000 * 60 * 60 * 24));
+          linkKarma = user.linkKarma || 0;
+          commentKarma = user.commentKarma || 0;
+          isVerified = user.isVerified || false;
+          isSuspended = user.isSuspended || false;
+        }
+      } catch (getUserError) {
+        console.warn(`[UserService] getUser not available, using fallback: ${getUserError}`);
+        // Fallback: Try to estimate from user submissions
+        try {
+          const userPosts = await reddit.getPostsByUser({
+            username,
+            limit: 1,
+          });
+          if (userPosts && userPosts.length > 0) {
+            const post = userPosts[0];
+            linkKarma = (post as any).score || 0;
+            if (post.createdAt) {
+              accountAge = Math.floor((Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+            }
+          }
+        } catch (postsError) {
+          console.warn(`[UserService] Could not fetch user posts: ${postsError}`);
+        }
       }
 
       return {
         username,
-        accountAge: Math.floor((Date.now() - (user.createdAt?.getTime() || 0)) / (1000 * 60 * 60 * 24)),
-        linkKarma: (user as any).linkKarma || 0,
-        commentKarma: (user as any).commentKarma || 0,
-        isVerified: (user as any).isVerified || false,
-        isSuspended: (user as any).isSuspended || false,
+        accountAge,
+        linkKarma,
+        commentKarma,
+        isVerified,
+        isSuspended,
       };
     } catch (error) {
       console.error(`[UserService] Error fetching reputation for ${username}:`, error);

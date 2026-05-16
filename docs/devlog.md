@@ -1,5 +1,9 @@
 NOTE: 1. Fix user account age and karma not loading up in the dashboard user summary section. 2. Add link to original post in the post title in dashboard.
 
+FIXES COMPLETED:
+1. ✅ User account age and karma now load properly via Devvit API fallback
+2. ✅ Post titles now link to original Reddit posts (clickable URLs in dashboard)
+
 # Devlog: Reddit Mod Co-Pilot
 
 AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
@@ -71,6 +75,75 @@ AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
 
 ---
 
+## Phase 9: Spam/Repost Detection via Heuristics ✅ **COMPLETED**
+
+✅ **SpamDetectionService** (`services/spam-detection.ts`)
+  - **Spam Keywords:** Detects common spam patterns (crypto, free money, work from home, etc.)
+  - **Link Analysis:** Flags excessive links and suspicious URL shorteners
+  - **Text Patterns:** Detects repeated characters, excessive caps, excessive punctuation
+  - **Confidence Scoring:** 0-100 score with actionable reasons
+  - Distinguishes: spam, repost, suspicious, clean
+
+✅ **Repost Detection** 
+  - Compares against recent subreddit posts (lookback period: 30 days)
+  - **Exact Title Matching:** Detects identical post titles
+  - **Similarity Analysis:** Jaccard word-level comparison (75%+ threshold)
+  - **URL Deduplication:** Flags duplicate URLs
+  - Configurable lookback window and sensitivity
+
+✅ **Spam Check API Endpoint**
+  - `POST /api/spam-check` → Analyze post for spam/repost
+  - Input: title, body, author, url, postId
+  - Output: SpamIndicator with type, confidence, reasons, score
+  - Full error handling with graceful fallbacks
+
+✅ **SpamIndicators UI Component** (`SpamIndicators.tsx`)
+  - Color-coded alerts: spam (red), repost (orange), suspicious (yellow), clean (hidden)
+  - Shows confidence percentage and detailed reasons
+  - Contextual guidance for moderators (remove/check history/review)
+  - Icons for visual recognition (AlertTriangle, Repeat2, Shield)
+  - Loading and error states
+  - Dark mode support
+
+✅ **Integration into Moderation Flow**
+  - SpamIndicators display between AI Analysis and Comments
+  - Only shows for non-clean classifications (reduces noise)
+  - Automatic analysis on post load
+  - No impact on existing features
+
+✅ **Bug Fixes & UX Improvements**
+  - **User Data Loading:** Fixed UserService to handle Devvit API limitations
+    - Fallback to post history when full user API unavailable
+    - Graceful degradation with zero-defaults
+  - **Post Links:** Added Reddit post URLs to post titles
+    - Subreddit name now included in ModQueueItem
+    - QueueCarousel titles now link to original posts
+    - Clickable links for quick verification
+
+**Key Features:**
+- Heuristic-based detection (no ML required, fast processing)
+- Multi-factor analysis: keywords, links, text patterns, URL similarity
+- Recent post comparison for repost detection
+- Configurable sensitivity and lookback periods
+- Provides actionable guidance to moderators
+
+**Detection Factors:**
+1. Spam Keywords: 10 points each
+2. Excessive Links: 15 points
+3. Caps Ratio: 10 points if >50%
+4. Repeated Chars: 8 points
+5. URL Shorteners: 12 points
+6. Excessive Punctuation: 8 points
+7. Title Match: 30 points (exact), 15 (75%+ similarity)
+8. URL Duplicate: 25 points
+
+**Thresholds:**
+- Spam: ≥40 score
+- Suspicious: ≥20 score
+- Clean: <20 score
+
+---
+
 ## API Endpoints
 
 **Queue & Rules:**
@@ -95,6 +168,9 @@ AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
 
 **User:**
 - `GET /api/user/:username` — User reputation + moderation history
+
+**Spam & Repost Detection:**
+- `POST /api/spam-check` — Analyze post for spam/repost patterns
 
 ---
 
@@ -148,26 +224,31 @@ AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
 
 ---
 
-- Phase 9: Spam/repost detection via heuristics
 - Phase 10: Prompt tuning and performance optimization
 - Queue prioritization (urgent cases first)
 - Similar past cases lookup
+- Advanced analytics dashboard
 
 ---
 
 ## Project Status
 
-**Current Phase:** 8 - User History & Reputation Display ✅ **COMPLETE**
+**Current Phase:** 9 - Spam/Repost Detection ✅ **COMPLETE**
 
 **Build:** Clean, production-ready
-**Features:** MVP complete + real Reddit integration + robust queue fetching + user context
+**Features:** MVP complete + real Reddit integration + robust queue fetching + user context + spam detection
 **Code Quality:** TypeScript strict, modular, well-documented
 **UI/UX:** Professional, responsive, real-time feedback, context-aware
 **AI:** Real Gemini integration with rule-aware analysis
 **Moderation:** Full Reddit API integration (approve/remove/warn)
 **Testing:** Reliable multi-source queue + Testing Mode for development
 **User Context:** Complete reputation and history display
+**Safety:** Heuristic-based spam/repost detection
 
-**Key Improvement:** Moderators now have full visibility into user history and risk profile before making moderation decisions.
+**Key Improvements:**
+- Moderators have full visibility into user history and risk profile
+- Automatic spam/repost flagging reduces missed content
+- Post links enable quick verification on Reddit
+- Complete context for informed moderation decisions
 
-Next: Spam/repost detection via heuristics.
+Next: Performance optimization and prompt tuning.

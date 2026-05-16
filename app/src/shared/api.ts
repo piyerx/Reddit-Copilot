@@ -29,6 +29,7 @@ export type ModQueueItem = {
   score: number;
   numComments: number;
   createdAt: number;
+  subreddit?: string;
 };
 
 export type ModQueueResponse = {
@@ -194,4 +195,17 @@ export type UserProfile = {
 export type UserProfileResponse = {
   type: 'user-profile';
   profile: UserProfile;
+};
+
+// Spam Detection Types
+export type SpamIndicator = {
+  type: 'spam' | 'repost' | 'suspicious' | 'clean';
+  confidence: number;
+  reasons: string[];
+  score: number;
+};
+
+export type SpamAnalysisResponse = {
+  type: 'spam-analysis';
+  analysis: SpamIndicator;
 };
