@@ -189,6 +189,7 @@ export const App = () => {
               title={currentItem.title}
               body={currentItem.body}
               author={currentItem.author}
+              url={currentItem.url}
             />
           </section>
         )}

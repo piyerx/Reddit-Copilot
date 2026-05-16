@@ -7,7 +7,7 @@ import { reddit } from '@devvit/web/server';
 
 export interface UserReputation {
   username: string;
-  accountAge: number; // days
+  accountAge: number | null; // days
   linkKarma: number;
   commentKarma: number;
   isVerified: boolean;
@@ -35,40 +35,57 @@ export interface UserProfile {
 export class UserService {
   /**
    * Fetch user reputation and basic profile info
-   * Note: Devvit API limitations mean we fetch karma and account age from available post/comment data
+   * Uses the public Reddit client helpers and falls back only when the profile lookup fails.
    */
   static async getUserReputation(username: string): Promise<UserReputation> {
     try {
-      // Try to get user data - Devvit may not have full user API, so we use fallback approach
-      let accountAge = 0;
+      let accountAge: number | null = null;
       let linkKarma = 0;
       let commentKarma = 0;
       let isVerified = false;
       let isSuspended = false;
 
       try {
-        // Attempt to get user profile via getUser (if available in Devvit API)
-        const user = await (reddit as any).getUser(username);
+        const user = await reddit.getUserByUsername(username);
         if (user) {
-          accountAge = Math.floor((Date.now() - (user.createdAt?.getTime() || 0)) / (1000 * 60 * 60 * 24));
+          accountAge = Math.floor(
+            (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          );
           linkKarma = user.linkKarma || 0;
           commentKarma = user.commentKarma || 0;
-          isVerified = user.isVerified || false;
-          isSuspended = user.isSuspended || false;
+          isVerified = user.hasVerifiedEmail || false;
+          isSuspended = false;
+
+          try {
+            const subredditKarma = await user.getUserKarmaFromCurrentSubreddit();
+            linkKarma = subredditKarma.fromPosts ?? linkKarma;
+            commentKarma = subredditKarma.fromComments ?? commentKarma;
+          } catch (karmaError) {
+            console.warn(`[UserService] Could not fetch subreddit karma: ${karmaError}`);
+          }
         }
       } catch (getUserError) {
-        console.warn(`[UserService] getUser not available, using fallback: ${getUserError}`);
-        // Fallback: Try to estimate from user submissions
+        console.warn(`[UserService] getUserByUsername failed, using fallback: ${getUserError}`);
         try {
           const userPosts = await reddit.getPostsByUser({
             username,
-            limit: 1,
+            sort: 'new',
+            limit: 10,
+            pageSize: 10,
           });
-          if (userPosts && userPosts.length > 0) {
-            const post = userPosts[0];
-            linkKarma = (post as any).score || 0;
-            if (post.createdAt) {
-              accountAge = Math.floor((Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          const recentPosts = await userPosts.all();
+          if (recentPosts.length > 0) {
+            linkKarma = recentPosts.reduce((total, post) => total + (post.score || 0), 0);
+            const oldestPost = recentPosts.reduce((oldest, post) => {
+              if (!oldest) return post;
+              return post.createdAt < oldest.createdAt ? post : oldest;
+            }, recentPosts[0]);
+
+            if (oldestPost.createdAt) {
+              accountAge = Math.max(
+                0,
+                Math.floor((Date.now() - oldestPost.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+              );
             }
           }
         } catch (postsError) {
@@ -89,7 +106,7 @@ export class UserService {
       // Return minimal data on error
       return {
         username,
-        accountAge: 0,
+        accountAge: null,
         linkKarma: 0,
         commentKarma: 0,
         isVerified: false,
@@ -107,23 +124,26 @@ export class UserService {
     subredditName: string
   ): Promise<UserModerationHistory> {
     try {
-      // Fetch mod log items for this user
-      const modLog = await reddit.getModLog({
-        subreddit: subredditName,
-        user: username,
+      const modLog = await reddit.getModerationLog({
+        subredditName,
+        type: 'removelink',
+        limit: 100,
+        pageSize: 100,
       });
 
-      const removedPosts = modLog
-        .filter((log: any) => log.action === 'remove')
+      const modActions = await modLog.all();
+
+      const removedPosts = modActions
+        .filter((log: any) => log.target?.author === username)
         .slice(0, 10)
         .map((log: any) => ({
-          postId: log.targetId || '',
-          title: log.targetTitle || 'Removed content',
+          postId: log.target?.id || '',
+          title: log.target?.title || 'Removed content',
           removedAt: log.createdAt?.getTime() || 0,
         }));
 
-      const warningCount = modLog.filter((log: any) => log.action === 'warn').length;
-      const removalCount = modLog.filter((log: any) => log.action === 'remove').length;
+      const removalCount = removedPosts.length;
+      const warningCount = 0;
 
       return {
         totalRemoved: removalCount,
@@ -153,9 +173,9 @@ export class UserService {
     let riskScore = 0;
 
     // New accounts are slightly more risky
-    if (reputation.accountAge < 30) {
+    if (reputation.accountAge !== null && reputation.accountAge < 30) {
       riskScore += 2;
-    } else if (reputation.accountAge < 365) {
+    } else if (reputation.accountAge !== null && reputation.accountAge < 365) {
       riskScore += 1;
     }
 

@@ -24,9 +24,11 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
   if (!item) return null;
 
   // Construct Reddit post URL
-  const postUrl = item.subreddit
-    ? `https://reddit.com/r/${item.subreddit}/comments/${item.postId.replace('t3_', '')}`
-    : null;
+  const postUrl = item.url
+    ? item.url
+    : item.subreddit
+      ? `https://reddit.com/r/${item.subreddit}/comments/${item.postId.replace('t3_', '')}`
+      : null;
 
   return (
     <div className="card overflow-hidden">

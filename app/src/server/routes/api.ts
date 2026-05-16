@@ -205,6 +205,7 @@ api.get('/queue-item/:postId', async (c) => {
       );
     }
 
+    const subreddit = await reddit.getCurrentSubreddit();
     const reports: string[] = [];
     const item: ModQueueItem = {
       id: post.id || '',
@@ -212,11 +213,13 @@ api.get('/queue-item/:postId', async (c) => {
       title: (post as any).title || 'Post',
       author: (post as any).authorName || 'deleted',
       body: (post as any).body || '',
+      url: (post as any).url || '',
       reports: reports,
       reportCount: reports.length,
       score: post.score || 0,
       numComments: (post as any).numComments || 0,
       createdAt: post.createdAt instanceof Date ? post.createdAt.getTime() : Date.now(),
+      subreddit: subreddit.name,
     };
 
     // Fetch top comments

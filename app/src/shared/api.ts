@@ -24,6 +24,7 @@ export type ModQueueItem = {
   title: string;
   author: string;
   body: string;
+  url?: string;
   reports: string[];
   reportCount: number;
   score: number;
@@ -167,7 +168,7 @@ export type ModerationActionResponse = {
 // User History & Reputation Types
 export type UserReputation = {
   username: string;
-  accountAge: number;
+  accountAge: number | null;
   linkKarma: number;
   commentKarma: number;
   isVerified: boolean;

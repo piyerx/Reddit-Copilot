@@ -7,6 +7,7 @@ interface SpamIndicatorsProps {
   title: string;
   body: string;
   author: string;
+  url?: string;
   loading?: boolean;
 }
 
@@ -67,6 +68,7 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
   title,
   body,
   author,
+  url,
   loading = false,
 }) => {
   const [analysis, setAnalysis] = useState<SpamIndicator | null>(null);
@@ -86,6 +88,7 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
             title,
             body: body || '',
             author,
+            url,
             postId,
           }),
         });
@@ -120,7 +123,23 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
     );
   }
 
-  if (error || !analysis) {
+  if (error) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-300" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              Spam scan unavailable
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-300">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analysis) {
     return null;
   }
 
