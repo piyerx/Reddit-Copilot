@@ -21,6 +21,8 @@ import type {
   ModerationActionResponse,
   UserProfileResponse,
   SpamAnalysisResponse,
+  SimilarCasesResponse,
+  PriorityQueueResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 import { notesService } from '../services/notes';
@@ -28,6 +30,8 @@ import { ModerationService } from '../services/moderation';
 import { ModerationQueueService } from '../services/moderation-queue';
 import { UserService } from '../services/user';
 import { SpamDetectionService } from '../services/spam-detection';
+import { SimilarCasesService } from '../services/similar-cases';
+import { QueuePrioritizationService } from '../services/queue-prioritization';
 
 type ErrorResponse = {
   status: 'error';
@@ -651,6 +655,82 @@ api.post('/spam-check', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to check spam',
+      },
+      500
+    );
+  }
+});
+
+// Phase 10: Similar Cases Endpoint
+api.post('/similar-cases', async (c) => {
+  try {
+    const { postId, title, body, ruleViolated } = await c.req.json<{
+      postId: string;
+      title: string;
+      body: string;
+      ruleViolated?: string;
+    }>();
+
+    if (!postId || !title) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId and title are required' },
+        400
+      );
+    }
+
+    const cases = await SimilarCasesService.findSimilarCases(
+      title,
+      body || '',
+      ruleViolated
+    );
+
+    return c.json<SimilarCasesResponse>({
+      type: 'similar-cases',
+      cases,
+    });
+  } catch (error) {
+    console.error('Error finding similar cases:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to find similar cases',
+      },
+      500
+    );
+  }
+});
+
+// Phase 10: Priority Queue Endpoint
+api.get('/priority-queue', async (c) => {
+  try {
+    const testing = c.req.query('testing') === 'true';
+    const verbose = c.req.query('verbose') === 'true';
+
+    let items = await ModerationQueueService.getModQueue(testing, verbose);
+
+    // Prioritize the queue
+    const prioritized = await QueuePrioritizationService.prioritizeQueue(items);
+
+    return c.json<PriorityQueueResponse>({
+      type: 'priority-queue',
+      items: prioritized.map((p) => ({
+        postId: p.postId,
+        title: p.title,
+        author: p.author,
+        priorityScore: p.priorityScore,
+        urgency: p.urgency,
+        reasons: p.reasons,
+        reports: p.reports,
+        score: p.score,
+      })),
+      total: prioritized.length,
+    });
+  } catch (error) {
+    console.error('Error fetching priority queue:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch priority queue',
       },
       500
     );

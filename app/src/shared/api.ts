@@ -210,3 +210,36 @@ export type SpamAnalysisResponse = {
   type: 'spam-analysis';
   analysis: SpamIndicator;
 };
+
+// Phase 10: Performance & Consistency Types
+export type SimilarCase = {
+  postId: string;
+  title: string;
+  author: string;
+  removedAt: number;
+  removalReason: string;
+  ruleViolated: string;
+  similarity: number;
+};
+
+export type SimilarCasesResponse = {
+  type: 'similar-cases';
+  cases: SimilarCase[];
+};
+
+export type PrioritizedItem = {
+  postId: string;
+  title: string;
+  author: string;
+  priorityScore: number;
+  urgency: 'critical' | 'high' | 'medium' | 'low';
+  reasons: string[];
+  reports: string[];
+  score: number;
+};
+
+export type PriorityQueueResponse = {
+  type: 'priority-queue';
+  items: PrioritizedItem[];
+  total: number;
+};
