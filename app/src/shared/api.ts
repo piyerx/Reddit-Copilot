@@ -142,6 +142,11 @@ export type LogDecisionRequest = {
   aiSummary?: string;
   confidence?: number;
   notes?: string;
+  // Phase 10: Post details for similar cases tracking
+  postTitle?: string;
+  postBody?: string;
+  postAuthor?: string;
+  violatedRules?: string[];
 };
 
 export type LogDecisionResponse = {

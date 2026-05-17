@@ -72,7 +72,30 @@ export class SimilarCasesService {
     ruleViolated?: string
   ): Promise<SimilarCase[]> {
     try {
-      const similarCases: SimilarCase[] = [];
+      const similarCases = new Map<string, SimilarCase>();
+
+      const addMatches = (records: any[]) => {
+        for (const record of records) {
+          const similarity = this.calculateSimilarity(
+            title,
+            body,
+            record.title,
+            record.body || ''
+          );
+
+          if (similarity > 0.4) {
+            similarCases.set(record.postId, {
+              postId: record.postId,
+              title: record.title,
+              author: record.author || 'unknown',
+              removedAt: record.removedAt || Date.now(),
+              removalReason: record.removalReason || '',
+              similarity: Math.round(similarity * 100),
+              ruleViolated: record.ruleViolated || 'unknown',
+            });
+          }
+        }
+      };
 
       // If we know the rule, start there
       if (ruleViolated) {
@@ -80,33 +103,22 @@ export class SimilarCasesService {
         const records = await redis.get(ruleKey);
 
         if (records) {
-          const recordsList = JSON.parse(records);
-          for (const record of recordsList) {
-            const similarity = this.calculateSimilarity(
-              title,
-              body,
-              record.title,
-              record.body
-            );
+          addMatches(JSON.parse(records));
+        }
+      }
 
-            if (similarity > 0.4) {
-              // Only include > 40% similarity
-              similarCases.push({
-                postId: record.postId,
-                title: record.title,
-                author: record.author,
-                removedAt: record.removedAt,
-                removalReason: record.removalReason,
-                similarity: Math.round(similarity * 100),
-                ruleViolated: record.ruleViolated,
-              });
-            }
-          }
+      const keywords = this.extractKeywords(`${title} ${body}`);
+      for (const keyword of keywords.slice(0, 8)) {
+        const keywordKey = `${this.SIMILAR_CASES_PREFIX}keyword:${keyword}`;
+        const records = await redis.get(keywordKey);
+
+        if (records) {
+          addMatches(JSON.parse(records));
         }
       }
 
       // Sort by similarity and return top results
-      return similarCases
+      return [...similarCases.values()]
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, this.MAX_CASES);
     } catch (error) {
@@ -121,13 +133,14 @@ export class SimilarCasesService {
   private static async indexRemovalRecord(record: {
     postId: string;
     title: string;
+    body: string;
+    author: string;
+    removedAt: number;
+    removalReason: string;
+    ruleViolated: string;
   }): Promise<void> {
     try {
-      // Extract keywords from title
-      const keywords = record.title
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w.length > 3);
+      const keywords = this.extractKeywords(`${record.title} ${record.body}`);
 
       for (const keyword of keywords.slice(0, 5)) {
         const keywordKey = `${this.SIMILAR_CASES_PREFIX}keyword:${keyword}`;
@@ -145,6 +158,10 @@ export class SimilarCasesService {
     } catch {
       // Indexing failure is non-critical
     }
+  }
+
+  private static extractKeywords(text: string): string[] {
+    return [...new Set(text.toLowerCase().split(/\s+/).filter((w) => w.length > 3))];
   }
 
   /**

@@ -118,6 +118,13 @@ export const App = () => {
           reason,
           aiSummary: analysis?.summary,
           confidence: analysis?.confidence,
+          // Phase 10: Include post details and rules for similar cases tracking
+          postTitle: currentItem.title,
+          postBody: currentItem.body,
+          postAuthor: currentItem.author,
+          violatedRules: analysis?.violatedRules?.map(rule => 
+            typeof rule === 'string' ? rule : rule.ruleTitle || rule.description
+          ),
         }),
       });
 

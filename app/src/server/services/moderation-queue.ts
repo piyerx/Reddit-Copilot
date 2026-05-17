@@ -55,35 +55,49 @@ export class ModerationQueueService {
         if (testingMode) console.log(`[ModerationQueue] Testing Mode ENABLED`);
       }
 
+      const subredditAny = subreddit as any;
+      const redditAny = reddit as any;
+
       // SOURCE 1: Standard Modqueue (reported content)
       try {
-        const modQueueListing = await subreddit.getModQueue({
-          limit: limit,
-          type: 'all',
-        });
-        const reportedItems = await modQueueListing.all();
+        const getModQueueFn =
+          typeof subredditAny.getModQueue === 'function'
+            ? subredditAny.getModQueue.bind(subredditAny)
+            : typeof redditAny.getModQueue === 'function'
+              ? redditAny.getModQueue.bind(redditAny)
+              : null;
 
-        const reportedMapped = reportedItems.map((item) =>
-          this.mapItemToModQueueItem(item, 'reported', subName)
-        );
-        const reportedFiltered = reportedMapped.filter((item) => {
-          if (itemSet.has(item.id)) {
-            stats.deduped++;
-            return false;
-          }
-          itemSet.add(item.id);
-          return true;
-        });
-
-        stats.reportedItems = reportedFiltered.length;
-        allItems.push(...reportedFiltered);
-        stats.sources.push(`reported (${reportedFiltered.length})`);
-
-        if (verbose) {
-          console.log(`[ModerationQueue] Reported items: ${reportedFiltered.length}`);
-          reportedFiltered.slice(0, 3).forEach((item) => {
-            console.log(`  - ${item.postId}: ${item.title}`);
+        if (getModQueueFn) {
+          const modQueueListing = await getModQueueFn({
+            limit,
+            type: 'all',
           });
+          const reportedItems = await modQueueListing.all();
+
+          const reportedMapped = reportedItems.map((item: any) =>
+            this.mapItemToModQueueItem(item, 'reported', subName)
+          );
+          const reportedFiltered = reportedMapped.filter((item) => {
+            if (itemSet.has(item.id)) {
+              stats.deduped++;
+              return false;
+            }
+            itemSet.add(item.id);
+            return true;
+          });
+
+          stats.reportedItems = reportedFiltered.length;
+          allItems.push(...reportedFiltered);
+          stats.sources.push(`reported (${reportedFiltered.length})`);
+
+          if (verbose) {
+            console.log(`[ModerationQueue] Reported items: ${reportedFiltered.length}`);
+            reportedFiltered.slice(0, 3).forEach((item) => {
+              console.log(`  - ${item.postId}: ${item.title}`);
+            });
+          }
+        } else if (verbose) {
+          console.warn('[ModerationQueue] Live modqueue API unavailable; skipping reported queue source');
         }
       } catch (error) {
         console.warn('[ModerationQueue] Error fetching reported queue:', error);
@@ -132,29 +146,40 @@ export class ModerationQueueService {
       // SOURCE 3: Testing Mode - Latest posts for simulation
       if (testingMode) {
         try {
-          const newListing = await subreddit.getNewPosts({ limit: Math.min(10, limit) });
-          const newPosts = await newListing.all();
+          const getNewPostsFn =
+            typeof subredditAny.getNewPosts === 'function'
+              ? subredditAny.getNewPosts.bind(subredditAny)
+              : typeof redditAny.getNewPosts === 'function'
+                ? redditAny.getNewPosts.bind(redditAny)
+                : null;
 
-          const testingMapped = newPosts
-            .map((post) => this.mapItemToModQueueItem(post, 'testing', subName))
-            .filter((item) => {
-              if (itemSet.has(item.id)) {
-                stats.deduped++;
-                return false;
-              }
-              itemSet.add(item.id);
-              return true;
-            });
+          if (getNewPostsFn) {
+            const newListing = await getNewPostsFn({ limit: Math.min(10, limit) });
+            const newPosts = await newListing.all();
 
-          stats.testingModeItems = testingMapped.length;
-          allItems.push(...testingMapped);
-          stats.sources.push(`testing-mode (${testingMapped.length})`);
+            const testingMapped = newPosts
+              .map((post: any) => this.mapItemToModQueueItem(post, 'testing', subName))
+              .filter((item) => {
+                if (itemSet.has(item.id)) {
+                  stats.deduped++;
+                  return false;
+                }
+                itemSet.add(item.id);
+                return true;
+              });
 
-          if (verbose) {
-            console.log(`[ModerationQueue] Testing Mode posts: ${testingMapped.length}`);
-            testingMapped.slice(0, 3).forEach((item) => {
-              console.log(`  - [TEST] ${item.postId}: ${item.title}`);
-            });
+            stats.testingModeItems = testingMapped.length;
+            allItems.push(...testingMapped);
+            stats.sources.push(`testing-mode (${testingMapped.length})`);
+
+            if (verbose) {
+              console.log(`[ModerationQueue] Testing Mode posts: ${testingMapped.length}`);
+              testingMapped.slice(0, 3).forEach((item) => {
+                console.log(`  - [TEST] ${item.postId}: ${item.title}`);
+              });
+            }
+          } else if (verbose) {
+            console.warn('[ModerationQueue] Testing mode post API unavailable; skipping testing source');
           }
         } catch (error) {
           console.warn('[ModerationQueue] Error fetching testing mode posts:', error);

@@ -447,6 +447,10 @@ api.post('/decisions', async (c) => {
       aiSummary,
       confidence,
       notes,
+      postTitle,
+      postBody,
+      postAuthor,
+      violatedRules,
     } = await c.req.json<LogDecisionRequest>();
 
     if (!postId || !action || !reason) {
@@ -466,6 +470,27 @@ api.post('/decisions', async (c) => {
       confidence,
       notes
     );
+
+    // Phase 10: Store removal record for similar cases matching
+    if (action === 'remove' && postTitle && postAuthor) {
+      const ruleViolated = violatedRules && violatedRules.length > 0 
+        ? violatedRules[0] 
+        : 'other';
+      
+      try {
+        await SimilarCasesService.storeRemovalRecord(
+          postId,
+          postTitle,
+          postAuthor,
+          reason,
+          ruleViolated,
+          postBody
+        );
+      } catch (storageError) {
+        console.warn('Failed to store removal record for similar cases:', storageError);
+        // Don't fail the decision logging if storage fails
+      }
+    }
 
     return c.json<LogDecisionResponse>({
       type: 'decision-logged',
@@ -706,7 +731,11 @@ api.get('/priority-queue', async (c) => {
     const testing = c.req.query('testing') === 'true';
     const verbose = c.req.query('verbose') === 'true';
 
-    let items = await ModerationQueueService.getModQueue(testing, verbose);
+    const { items } = await ModerationQueueService.fetchModerationItems({
+      limit: 25,
+      testingMode: testing,
+      verbose,
+    });
 
     // Prioritize the queue
     const prioritized = await QueuePrioritizationService.prioritizeQueue(items);
@@ -714,14 +743,14 @@ api.get('/priority-queue', async (c) => {
     return c.json<PriorityQueueResponse>({
       type: 'priority-queue',
       items: prioritized.map((p) => ({
-        postId: p.postId,
-        title: p.title,
-        author: p.author,
+        postId: p.item.postId,
+        title: p.item.title,
+        author: p.item.author,
         priorityScore: p.priorityScore,
         urgency: p.urgency,
         reasons: p.reasons,
-        reports: p.reports,
-        score: p.score,
+        reports: p.item.reports,
+        score: p.item.score,
       })),
       total: prioritized.length,
     });

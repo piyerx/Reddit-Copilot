@@ -40,7 +40,7 @@ export class AnalysisCacheService {
       };
 
       await redis.set(key, JSON.stringify(cacheData), {
-        expiration: ttlSeconds,
+        expiration: new Date(Date.now() + ttlSeconds * 1000),
       });
     } catch (error) {
       console.warn('[AnalysisCache] Error caching analysis:', error);
