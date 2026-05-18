@@ -3,7 +3,7 @@
  * Uses simple patterns to detect common spam, spam-like behavior, and likely reposts
  */
 
-import { reddit } from '@devvit/web/server';
+import { SimilarCasesService } from './similar-cases';
 
 export interface SpamIndicator {
   type: 'spam' | 'repost' | 'suspicious' | 'clean';
@@ -107,71 +107,45 @@ export class SpamDetectionService {
    * Compares against recent posts in subreddit
    */
   static async detectRepost(
-    post: { title: string; url?: string; postId: string },
+    post: { title: string; body?: string; url?: string; postId: string },
     subredditName: string,
     lookbackDays: number = 30
   ): Promise<SpamIndicator> {
-    const { title, url, postId } = post;
+    const { title, body, url, postId } = post;
     const reasons: string[] = [];
     let score = 0;
 
     try {
-      // Fetch recent posts from subreddit
-      const subreddit = await reddit.getSubredditByName(subredditName);
-      const newListing = await subreddit.getNewPosts({ limit: 100 });
-      const recentPosts = await newListing.all();
+      const precedentCases = await SimilarCasesService.findSimilarCases(title, body || '');
 
-      const lookbackMs = lookbackDays * 24 * 60 * 60 * 1000;
-      const cutoffTime = Date.now() - lookbackMs;
-
-      let exactMatches = 0;
       let similarMatches = 0;
+      for (const precedent of precedentCases) {
+        if (precedent.postId === postId) continue;
 
-      for (const recentPost of recentPosts) {
-        if (recentPost.id === postId) continue;
-        if (recentPost.createdAt && recentPost.createdAt.getTime() < cutoffTime) continue;
-
-        const recentTitle = (recentPost.title || '').toLowerCase();
-        const currentTitle = title.toLowerCase();
-
-        // Exact title match
-        if (recentTitle === currentTitle) {
-          exactMatches++;
+        if (precedent.similarity >= 90) {
+          similarMatches++;
           score += 30;
-          reasons.push(`Exact title match: "${recentPost.title?.substring(0, 50)}..."`);
-        }
-
-        // Similar title (75%+ similarity)
-        if (this.calculateSimilarity(recentTitle, currentTitle) > 0.75) {
+          reasons.push(`Very similar prior removal: "${precedent.title.substring(0, 50)}..."`);
+        } else if (precedent.similarity >= 75) {
           similarMatches++;
           score += 15;
-          reasons.push(`Similar title: "${recentPost.title?.substring(0, 50)}..."`);
+          reasons.push(`Similar prior removal: "${precedent.title.substring(0, 50)}..."`);
         }
 
-        // Same URL
-        if (
-          url &&
-          recentPost.url &&
-          url.toLowerCase() === recentPost.url.toLowerCase()
-        ) {
-          score += 25;
-          reasons.push('Duplicate URL');
+        if (url && precedent.removalReason.toLowerCase().includes(url.toLowerCase())) {
+          score += 10;
+          reasons.push('Possible repeated URL pattern');
         }
       }
 
-      if (exactMatches > 1) {
+      if (similarMatches > 1) {
         score += 20;
-        reasons.push(`${exactMatches} exact matches found`);
-      }
-
-      if (similarMatches > 2) {
-        score += 15;
-        reasons.push(`${similarMatches} similar posts in recent history`);
+        reasons.push(`${similarMatches} similar precedent cases found`);
       }
     } catch (error) {
       console.warn('[SpamDetection] Error checking for reposts:', error);
       // Don't fail entirely on error
-      reasons.push('Could not fully check repost history');
+      reasons.push('Could not fully check precedent history');
     }
 
     // Determine type
@@ -205,7 +179,7 @@ export class SpamDetectionService {
     if (spamIndicator.confidence < 60) {
       try {
         repostIndicator = await this.detectRepost(
-          { title: post.title, url: post.url, postId: post.postId },
+          { title: post.title, body: post.body, url: post.url, postId: post.postId },
           subredditName
         );
       } catch (error) {

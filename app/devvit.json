@@ -1,6 +1,9 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "tx-nova",
+  "marketingAssets": {
+    "icon": "public/modcop_icon_xl.png"
+  },
   "post": {
     "dir": "dist/client",
     "entrypoints": {

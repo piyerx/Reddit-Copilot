@@ -21,6 +21,8 @@ import type {
   ModerationActionResponse,
   UserProfileResponse,
   SpamAnalysisResponse,
+  SimilarCasesResponse,
+  PriorityQueueResponse,
 } from '../../shared/api';
 import { aiService } from '../services/ai';
 import { notesService } from '../services/notes';
@@ -28,6 +30,8 @@ import { ModerationService } from '../services/moderation';
 import { ModerationQueueService } from '../services/moderation-queue';
 import { UserService } from '../services/user';
 import { SpamDetectionService } from '../services/spam-detection';
+import { SimilarCasesService } from '../services/similar-cases';
+import { QueuePrioritizationService } from '../services/queue-prioritization';
 
 type ErrorResponse = {
   status: 'error';
@@ -443,6 +447,10 @@ api.post('/decisions', async (c) => {
       aiSummary,
       confidence,
       notes,
+      postTitle,
+      postBody,
+      postAuthor,
+      violatedRules,
     } = await c.req.json<LogDecisionRequest>();
 
     if (!postId || !action || !reason) {
@@ -462,6 +470,27 @@ api.post('/decisions', async (c) => {
       confidence,
       notes
     );
+
+    // Phase 10: Store removal record for similar cases matching
+    if (action === 'remove' && postTitle && postAuthor) {
+      const ruleViolated = violatedRules && violatedRules.length > 0 
+        ? violatedRules[0] 
+        : 'other';
+      
+      try {
+        await SimilarCasesService.storeRemovalRecord(
+          postId,
+          postTitle,
+          postAuthor,
+          reason,
+          ruleViolated,
+          postBody
+        );
+      } catch (storageError) {
+        console.warn('Failed to store removal record for similar cases:', storageError);
+        // Don't fail the decision logging if storage fails
+      }
+    }
 
     return c.json<LogDecisionResponse>({
       type: 'decision-logged',
@@ -651,6 +680,86 @@ api.post('/spam-check', async (c) => {
       {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to check spam',
+      },
+      500
+    );
+  }
+});
+
+// Phase 10: Similar Cases Endpoint
+api.post('/similar-cases', async (c) => {
+  try {
+    const { postId, title, body, ruleViolated } = await c.req.json<{
+      postId: string;
+      title: string;
+      body: string;
+      ruleViolated?: string;
+    }>();
+
+    if (!postId || !title) {
+      return c.json<ErrorResponse>(
+        { status: 'error', message: 'postId and title are required' },
+        400
+      );
+    }
+
+    const cases = await SimilarCasesService.findSimilarCases(
+      title,
+      body || '',
+      ruleViolated
+    );
+
+    return c.json<SimilarCasesResponse>({
+      type: 'similar-cases',
+      cases,
+    });
+  } catch (error) {
+    console.error('Error finding similar cases:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to find similar cases',
+      },
+      500
+    );
+  }
+});
+
+// Phase 10: Priority Queue Endpoint
+api.get('/priority-queue', async (c) => {
+  try {
+    const testing = c.req.query('testing') === 'true';
+    const verbose = c.req.query('verbose') === 'true';
+
+    const { items } = await ModerationQueueService.fetchModerationItems({
+      limit: 25,
+      testingMode: testing,
+      verbose,
+    });
+
+    // Prioritize the queue
+    const prioritized = await QueuePrioritizationService.prioritizeQueue(items);
+
+    return c.json<PriorityQueueResponse>({
+      type: 'priority-queue',
+      items: prioritized.map((p) => ({
+        postId: p.item.postId,
+        title: p.item.title,
+        author: p.item.author,
+        priorityScore: p.priorityScore,
+        urgency: p.urgency,
+        reasons: p.reasons,
+        reports: p.item.reports,
+        score: p.item.score,
+      })),
+      total: prioritized.length,
+    });
+  } catch (error) {
+    console.error('Error fetching priority queue:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch priority queue',
       },
       500
     );

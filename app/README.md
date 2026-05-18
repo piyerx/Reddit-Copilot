@@ -1,11 +1,8 @@
 # ModCoPilot
 
 AI-powered, context-aware moderation assistant for Reddit moderators. Created by [PiyerX](https://github.com/piyerx) & [Paxyz](https://github.com/paxyz-4)
-> **⚠️ Warning**: This is currently under development (Phase 7/10)
 
-<p align=center>
-  <img width="700" alt="image" src="https://github.com/user-attachments/assets/3016f4d9-b21e-44e8-9c1f-2eab6e27955f" />
-</p>
+> **⚠️ Warning**: This is currently under development (Phase 10/10)
 
 ## Features
 - AI queue summaries

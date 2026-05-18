@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ModQueueItem, ModComment, AIAnalysis } from '../../shared/api';
+import { PromptTemplates } from './prompt-templates';
+import { AnalysisCacheService } from './analysis-cache';
 
 /**
  * AI Service for moderation analysis using Gemini or fallback.
@@ -34,6 +36,7 @@ export class AIService {
 
   /**
    * Analyze a moderation queue item for rule violations.
+   * Uses caching to avoid redundant API calls.
    */
   async analyzePost(
     post: ModQueueItem,
@@ -41,13 +44,28 @@ export class AIService {
     subredditRules?: string[]
   ): Promise<AIAnalysis> {
     try {
-      if (this.config.provider === 'gemini') {
-        return await this.analyzeWithGemini(post, comments, subredditRules);
-      } else if (this.config.provider === 'openai') {
-        return await this.analyzeWithOpenAI(post, comments, subredditRules);
-      } else {
-        return this.generateDemoAnalysis(post, comments);
+      // Check cache first
+      const cached = await AnalysisCacheService.getCachedAnalysis(
+        post.title,
+        post.body
+      );
+      if (cached) {
+        console.log(`[AIService] Using cached analysis for post ${post.postId}`);
+        return cached;
       }
+
+      let analysis: AIAnalysis;
+      if (this.config.provider === 'gemini') {
+        analysis = await this.analyzeWithGemini(post, comments, subredditRules);
+      } else if (this.config.provider === 'openai') {
+        analysis = await this.analyzeWithOpenAI(post, comments, subredditRules);
+      } else {
+        analysis = this.generateDemoAnalysis(post, comments);
+      }
+
+      // Cache the result
+      await AnalysisCacheService.cacheAnalysis(post.title, post.body, analysis);
+      return analysis;
     } catch (error) {
       console.error('AI Analysis Error:', error);
       // Fallback to demo analysis on error
@@ -148,7 +166,7 @@ export class AIService {
   }
 
   /**
-   * Analyze with Gemini API - sends structured prompt for moderation analysis.
+   * Analyze with Gemini API - sends optimized structured prompt for better results.
    */
   private async analyzeWithGemini(
     post: ModQueueItem,
@@ -176,41 +194,16 @@ export class AIService {
             .join('\n')
         : 'No specific rules provided';
 
-      const prompt = `You are a Reddit moderation assistant. Analyze this post and determine if it violates subreddit rules.
-
-**Subreddit Rules:**
-${rulesText}
-
-**Post Details:**
-- Title: ${post.title}
-- Author: u/${post.author}
-- Body: ${post.body || '[no body text]'}
-- Upvotes: ${post.score}
-- Reports: ${post.reportCount > 0 ? post.reports.join(', ') : 'None'}
-
-**Top Comments:**
-${commentsText}
-
-**Your task:**
-1. Identify any rule violations (reference the rule number and title)
-2. Rate confidence as a percentage (0-100)
-3. Suggest an action: approve, review, warn, or remove
-4. Provide brief, specific reasoning explaining which rule is violated and why
-
-**Respond in this exact JSON format only:**
-{
-  "summary": "one-sentence summary of the post",
-  "violatedRules": [
-    {
-      "ruleNumber": 1,
-      "ruleTitle": "Rule title here",
-      "description": "Why this rule is violated"
-    }
-  ],
-  "confidence": 75,
-  "suggestedAction": "remove",
-  "reasoning": "Specific explanation of the violation"
-}`;
+      // Use optimized prompt template
+      const prompt = PromptTemplates.getPostAnalysisPrompt(
+        post.title,
+        post.body || '',
+        post.author,
+        post.score,
+        post.reports,
+        commentsText,
+        rulesText
+      );
 
       const result = await model.generateContent(prompt);
       const responseText =
@@ -286,7 +279,7 @@ ${commentsText}
   }
 
   /**
-   * Generate removal reason with Gemini API.
+   * Generate removal reason with Gemini API - uses optimized prompt template.
    */
   private async generateReasonWithGemini(
     rules: string[],
@@ -302,17 +295,11 @@ ${commentsText}
         model: 'gemini-1.5-flash',
       });
 
-      const prompt = `You are a Reddit moderator. Generate a professional, concise removal message.
-
-**Post Title:** ${postTitle}
-
-**Subreddit Rules:**
-${rules.join('\n')}
-
-**Violated Rules:**
-${violatedRules.join('\n')}
-
-Write a friendly but firm removal notice (2-3 sentences) that explains why the post was removed and encourages the user to revise and resubmit. Be respectful but clear.`;
+      const prompt = PromptTemplates.getRemovalReasonPrompt(
+        postTitle,
+        rules,
+        violatedRules
+      );
 
       const result = await model.generateContent(prompt);
       const reason =

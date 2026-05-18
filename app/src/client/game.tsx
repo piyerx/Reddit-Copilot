@@ -1,6 +1,6 @@
 import './index.css';
 
-import { StrictMode, useState } from 'react';
+import { StrictMode, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CheckCircle2, AlertCircle, XCircle, Loader } from 'lucide-react';
 import { useQueue } from './hooks/useQueue';
@@ -10,6 +10,9 @@ import { AISummary } from './components/AISummary';
 import { NotesPanel } from './components/NotesPanel';
 import { UserHistory } from './components/UserHistory';
 import { SpamIndicators } from './components/SpamIndicators';
+import { SimilarCases } from './components/SimilarCases';
+import { PriorityIndicator } from './components/PriorityIndicator';
+import type { PrioritizedItem } from '../shared/api';
 
 export const App = () => {
   const {
@@ -30,6 +33,37 @@ export const App = () => {
   const [actionLoading, setActionLoading] = useState<'approve' | 'remove' | 'warn' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  // Phase 10: Priority & Similar Cases
+  const [priorityData, setPriorityData] = useState<PrioritizedItem | null>(null);
+
+  // Fetch priority data when current item changes
+  useEffect(() => {
+    const fetchPriorityData = async () => {
+      if (!currentItem) {
+        setPriorityData(null);
+        return;
+      }
+
+      try {
+        // For now, we'll use the modqueue endpoint to calculate priority
+        // In a full implementation, you might have a dedicated priority endpoint
+        const response = await fetch('/api/priority-queue');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const prioritized = data.items as PrioritizedItem[];
+        const current = prioritized.find((item) => item.postId === currentItem.postId);
+        if (current) {
+          setPriorityData(current);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch priority data:', err);
+      }
+    };
+
+    fetchPriorityData();
+  }, [currentItem]);
 
   const handleAction = async (
     action: 'approve' | 'remove' | 'warn' | 'escalate' | 'review'
@@ -84,6 +118,13 @@ export const App = () => {
           reason,
           aiSummary: analysis?.summary,
           confidence: analysis?.confidence,
+          // Phase 10: Include post details and rules for similar cases tracking
+          postTitle: currentItem.title,
+          postBody: currentItem.body,
+          postAuthor: currentItem.author,
+          violatedRules: analysis?.violatedRules?.map(rule => 
+            typeof rule === 'string' ? rule : rule.ruleTitle || rule.description
+          ),
         }),
       });
 
@@ -161,6 +202,17 @@ export const App = () => {
           </p>
         </div>
 
+        {/* Priority Indicator (Phase 10) */}
+        {priorityData && (
+          <section>
+            <PriorityIndicator
+              urgency={priorityData.urgency}
+              priorityScore={priorityData.priorityScore}
+              reasons={priorityData.reasons}
+            />
+          </section>
+        )}
+
         {/* Queue Item Card */}
         <section className="space-y-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">Post Review</h2>
@@ -190,6 +242,25 @@ export const App = () => {
               body={currentItem.body}
               author={currentItem.author}
               url={currentItem.url}
+            />
+          </section>
+        )}
+
+        {/* Similar Cases (Phase 10) */}
+        {currentItem && analysis && (
+          <section className="space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 px-1">Moderation Precedents</h2>
+            <SimilarCases
+              postId={currentItem.postId}
+              title={currentItem.title}
+              body={currentItem.body}
+              ruleViolated={
+                Array.isArray(analysis.violatedRules) && analysis.violatedRules.length > 0
+                  ? typeof analysis.violatedRules[0] === 'string'
+                    ? analysis.violatedRules[0]
+                    : (analysis.violatedRules[0] as any)?.ruleTitle
+                  : undefined
+              }
             />
           </section>
         )}
