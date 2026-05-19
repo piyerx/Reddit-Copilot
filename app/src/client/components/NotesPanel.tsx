@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { MessageSquare, Clock, Edit2, Trash2, Plus, AlertCircle } from 'lucide-react';
+import { MessageSquare, Clock, Plus, AlertCircle } from 'lucide-react';
 import type { PostNote, DecisionLog } from '../../shared/api';
 
 interface NotesPanelProps {
@@ -113,10 +113,10 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
       {/* Header */}
       <div className="card-header flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950">
+          <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-950/70">
             <MessageSquare size={18} className="text-blue-600 dark:text-blue-400" />
           </div>
-          <h3 className="font-bold text-gray-900 dark:text-white">CoPilot Notes</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-slate-950 dark:text-slate-100">CoPilot Notes</h3>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
 
       {/* Error state */}
       {error && (
-        <div className="m-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-sm text-red-700 dark:text-red-400 flex items-center gap-3">
+        <div className="m-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400 sm:m-5">
           <AlertCircle size={18} className="flex-shrink-0" />
           {error}
         </div>
@@ -160,11 +160,13 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
 
       {/* Loading state */}
       {loading && (
-        <div className="py-12 text-center">
-          <div className="inline-block animate-spin">
-            <MessageSquare size={28} className="text-blue-400" />
+        <div className="space-y-3 p-4 sm:p-5">
+          <div className="h-4 w-28 rounded-full loading-shimmer" />
+          <div className="space-y-2">
+            <div className="h-20 rounded-xl bg-slate-100 dark:bg-slate-800 loading-shimmer" />
+            <div className="h-20 rounded-xl bg-slate-100 dark:bg-slate-800 loading-shimmer" />
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">Loading...</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading...</p>
         </div>
       )}
 
@@ -172,20 +174,20 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
         <>
           {/* Notes Tab */}
           {activeTab === 'notes' && (
-            <div className="px-6 py-4 space-y-4">
+            <div className="space-y-4 px-4 py-4 sm:px-5">
               {/* Add Note Section */}
               <div>
                 <textarea
                   value={newNoteContent}
                   onChange={(e) => setNewNoteContent(e.target.value)}
                   placeholder="Add a note about this post..."
-                  className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white/90 p-3 text-sm text-slate-900 placeholder-slate-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100 dark:placeholder-slate-400"
                   rows={3}
                 />
                 <button
                   onClick={handleAddNote}
                   disabled={addingNote || !newNoteContent.trim()}
-                  className="mt-3 w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-700 dark:disabled:to-slate-700 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-2.5 font-semibold text-white transition-all hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-500 dark:disabled:from-slate-800 dark:disabled:to-slate-800 dark:disabled:text-slate-500"
                 >
                   <Plus size={18} />
                   {addingNote ? 'Adding...' : 'Add Note'}
@@ -193,40 +195,29 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
               </div>
 
               {/* Notes List */}
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
                 {notes.length === 0 ? (
-                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
+                  <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
                     No notes yet. Add one above.
                   </p>
                 ) : (
                   notes.map((note) => (
                     <div
                       key={note.id}
-                      className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow"
+                      className="rounded-xl border border-slate-200 bg-slate-50/90 p-4 transition-shadow hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                          <p className="text-sm font-semibold text-slate-950 dark:text-slate-100">
                             {note.author}
                           </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                          <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
                             {formatDate(note.createdAt)}
                           </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.content}</p>
+                          <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{note.content}</p>
                         </div>
-                        <div className="flex gap-1 ml-3 flex-shrink-0">
-                          <button
-                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-                            title="Edit note"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            className="p-2 hover:bg-red-100 dark:hover:bg-red-950 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                            title="Delete note"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                        <div className="ml-3 flex-shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+                          Internal
                         </div>
                       </div>
                     </div>
@@ -238,17 +229,17 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
 
           {/* Decisions Tab */}
           {activeTab === 'decisions' && (
-            <div className="px-6 py-4">
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+            <div className="px-4 py-4 sm:px-5">
+              <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
                 {decisions.length === 0 ? (
-                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
+                  <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                     No moderation decisions logged yet.
                   </p>
                 ) : (
                   decisions.map((decision) => (
                     <div
                       key={decision.id}
-                      className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-sm transition-shadow"
+                      className="rounded-xl border border-slate-200 bg-slate-50/90 p-4 transition-shadow hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -259,35 +250,35 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ postId, className = '' }
                           >
                             {decision.action.toUpperCase()}
                           </span>
-                          <span className="text-xs text-slate-600 dark:text-slate-400">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             by {decision.moderator}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                           <Clock size={14} />
                           <span className="text-xs">{formatDate(decision.timestamp)}</span>
                         </div>
                       </div>
 
-                      <div className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                      <div className="mb-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
                         <strong>Reason:</strong> {decision.reason}
                       </div>
 
                       {decision.aiSummary && (
-                        <div className="text-sm text-gray-700 dark:text-gray-300 mb-3 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-900">
-                          <strong className="text-blue-800 dark:text-blue-400">AI Summary:</strong>{' '}
+                        <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-sm text-slate-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-slate-300">
+                          <strong className="text-blue-800 dark:text-blue-300">AI Summary:</strong>{' '}
                           {decision.aiSummary}
                         </div>
                       )}
 
                       {decision.confidence && (
-                        <div className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                        <div className="mb-2 text-xs text-slate-500 dark:text-slate-400">
                           Confidence: <span className="font-semibold">{decision.confidence}%</span>
                         </div>
                       )}
 
                       {decision.notes && (
-                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-3 border-t border-slate-200 dark:border-slate-700 pt-3">
+                        <div className="mt-3 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                           <strong>Notes:</strong> {decision.notes}
                         </div>
                       )}

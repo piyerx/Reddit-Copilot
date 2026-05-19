@@ -76,9 +76,13 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
   if (isLoading || loading) {
     return (
       <div className="card">
-        <div className="text-center p-6">
-          <div className="animate-spin mb-3 text-2xl">⏳</div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Loading user history...</p>
+        <div className="space-y-3 p-4 sm:p-5">
+          <div className="h-4 w-32 rounded-full loading-shimmer" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 loading-shimmer" />
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 loading-shimmer" />
+          </div>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Loading user history...</p>
         </div>
       </div>
     );
@@ -86,8 +90,8 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
 
   if (error) {
     return (
-      <div className="card border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30">
-        <p className="text-sm text-red-600 dark:text-red-400 p-6">{error}</p>
+      <div className="card border-red-200 bg-red-50/90 dark:border-red-900 dark:bg-red-950/30">
+        <p className="p-4 text-sm text-red-600 dark:text-red-400 sm:p-5">{error}</p>
       </div>
     );
   }
@@ -109,27 +113,27 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
 
       {/* Header with Risk Level */}
       <div className="card-header">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">User Reputation</h3>
-          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getRiskBadgeColor(riskLevel)}`}>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">User Reputation</h3>
+          <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${getRiskBadgeColor(riskLevel)}`}>
             {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
           </span>
         </div>
-        <p className="text-xs text-slate-600 dark:text-slate-400">u/{reputation.username}</p>
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">u/{reputation.username}</p>
       </div>
 
       {/* Account Stats */}
-      <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+      <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/30 sm:px-5">
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-white dark:bg-slate-700/50 p-3">
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Account Age</p>
-            <p className="text-base font-bold text-gray-900 dark:text-white mt-1">
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-3 dark:border-slate-800 dark:bg-slate-900/70">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Account Age</p>
+            <p className="mt-1 text-base font-semibold tracking-tight text-slate-950 dark:text-slate-100">
               {formatAccountAge(reputation.accountAge)}
             </p>
           </div>
-          <div className="rounded-lg bg-white dark:bg-slate-700/50 p-3">
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Karma</p>
-            <p className="text-base font-bold text-gray-900 dark:text-white mt-1">
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-3 dark:border-slate-800 dark:bg-slate-900/70">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Karma</p>
+            <p className="mt-1 text-base font-semibold tracking-tight text-slate-950 dark:text-slate-100">
               {(reputation.commentKarma + reputation.linkKarma).toLocaleString()}
             </p>
           </div>
@@ -137,21 +141,21 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
       </div>
 
       {/* Moderation History */}
-      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-        <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-4">Moderation History</h4>
+      <div className="border-b border-slate-100 px-4 py-4 dark:border-slate-800 sm:px-5">
+        <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">Moderation History</h4>
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 rounded-lg bg-red-50 dark:bg-red-950/20 p-3 border border-red-200 dark:border-red-900">
+          <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50/90 p-3 dark:border-red-900 dark:bg-red-950/20">
             <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
             <div>
-              <p className="text-xs text-red-600 dark:text-red-400">Removed</p>
-              <p className="text-base font-bold text-red-900 dark:text-red-200">{modHistory.totalRemoved}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-red-600 dark:text-red-400">Removed</p>
+              <p className="text-base font-semibold text-red-900 dark:text-red-200">{modHistory.totalRemoved}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg bg-orange-50 dark:bg-orange-950/20 p-3 border border-orange-200 dark:border-orange-900">
+          <div className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50/90 p-3 dark:border-orange-900 dark:bg-orange-950/20">
             <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             <div>
-              <p className="text-xs text-orange-600 dark:text-orange-400">Warnings</p>
-              <p className="text-base font-bold text-orange-900 dark:text-orange-200">{modHistory.totalWarnings}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-600 dark:text-orange-400">Warnings</p>
+              <p className="text-base font-semibold text-orange-900 dark:text-orange-200">{modHistory.totalWarnings}</p>
             </div>
           </div>
         </div>
@@ -159,15 +163,15 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
 
       {/* Recent Removals */}
       {modHistory.recentRemovals.length > 0 && (
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-3">Recent Removals</h4>
+        <div className="border-b border-slate-100 px-4 py-4 dark:border-slate-800 sm:px-5">
+          <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">Recent Removals</h4>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {modHistory.recentRemovals.slice(0, 3).map((removal) => (
-              <div key={removal.postId} className="bg-red-50 dark:bg-red-950/20 rounded-lg p-3 border-l-4 border-red-400 dark:border-red-700">
-                <p className="text-xs text-gray-900 dark:text-gray-100 font-semibold line-clamp-2">
+              <div key={removal.postId} className="rounded-xl border-l-4 border-red-400 bg-red-50/90 p-3 dark:border-red-700 dark:bg-red-950/20">
+                <p className="line-clamp-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
                   {removal.title}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {new Date(removal.removedAt).toLocaleDateString()}
                 </p>
               </div>
@@ -177,7 +181,7 @@ export const UserHistory: React.FC<UserHistoryProps> = ({ username, loading = fa
       )}
 
       {/* Status Indicators */}
-      <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 bg-slate-50/80 px-4 py-3 dark:bg-slate-950/30 sm:px-5">
         {reputation.isVerified && (
           <span className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200 dark:border-blue-900">
             <Shield className="w-3.5 h-3.5" />

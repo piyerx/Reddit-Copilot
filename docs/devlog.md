@@ -1,314 +1,192 @@
-NOTE: 1. Fix user account age and karma not loading up in the dashboard user summary section. 2. Add link to original post in the post title in dashboard.
-
-FIXES COMPLETED:
-1. ✅ User account age and karma now load properly via Devvit API fallback
-2. ✅ Post titles now link to original Reddit posts (clickable URLs in dashboard)
-
 # Devlog: Reddit Mod Co-Pilot
 
-AI-powered moderation assistant for Reddit (Devvit + Gemini 1.5 Flash + React)
+AI-powered moderation assistant for Reddit built with Devvit, Gemini 1.5 Flash, React 19, and TypeScript.
 
-## Project Overview
+## Project Snapshot
 
-**Vision:** Intelligent moderation co-pilot for faster, consistent decisions while keeping humans in control.
-
-**Problem Solved:** Queue overload, repetitive reviews, context-poor automation, team coordination gaps.
-
-**Key Features:** AI summaries, rule violation detection, removal reason generation, moderation history tracking, user reputation display.
-
----
+■ Vision: an intelligent moderation co-pilot that helps moderators move faster while staying fully in control.
+■ Problem solved: queue overload, repetitive reviews, context-poor automation, and coordination gaps.
+■ Core value: AI summaries, likely rule detection, removal reason generation, moderation history, and user reputation context.
 
 ## Architecture
 
-**Tech Stack:** React 19 | TypeScript + Hono | Gemini 1.5 Flash | Devvit KV Store | Tailwind CSS 4
-
-**Data Flow:** Queue → Fetch Posts/Comments → AI Analysis → UI → Decision Logging → KV Store
-
----
+■ Tech stack: React 19 | TypeScript + Hono | Gemini 1.5 Flash | Devvit KV Store | Tailwind CSS 4.
+■ Data flow: Queue → fetch posts/comments → AI analysis → UI review → decision logging → KV Store.
 
 ## Completed Features
 
-### Phase 1-2: Foundation ✅
-- Devvit app + TypeScript/Vite setup
-- Client/server/shared code separation
-- Mobile-first responsive UI (dark mode supported)
+### Foundation
 
-### Phase 3: AI Integration ✅
-- **Gemini 1.5 Flash:** Real-time analysis, rule detection, confidence scoring, action suggestions
-- **Fallback Engine:** Demo mode, API error handling, graceful degradation
-- **Rules System:** Dynamic subreddit rule fetching, context-aware analysis
+■ Devvit app with TypeScript/Vite setup.
+■ Client/server/shared code separation.
+■ Mobile-first responsive UI with dark mode support.
 
-### Phase 3.5: Real Data Integration ✅
-- Real Devvit API calls: `getModQueue()`, `getRules()`, `getComments()`, `getPostById()`
-- Proper type handling (`authorName`, `shortName` properties)
-- Dynamic rule context passed to Gemini
+### AI Integration
 
-### Phase 4: Notes & Decision Logging ✅
-- Create/read/update/delete post-level notes
-- Moderation decision history with timestamps and moderator attribution
-- Persistent KV Store (`notes:${postId}`, `decisions:${postId}`)
-- NotesPanel component with tabbed interface (Notes | History)
+■ Gemini 1.5 Flash for real-time analysis, rule detection, confidence scoring, and action suggestions.
+■ Demo fallback with API error handling and graceful degradation.
+■ Dynamic subreddit rule fetching for context-aware analysis.
 
-### Phase 5: Mod Tools Integration ✅
-- "Open CoPilot" menu entry in Subreddit Mod Tools
-- Persistent dashboard post (stored in Redis)
-- Splash screen with community-contextual welcome
-- Direct navigation to game interface
+### Real Data Integration
 
-### Phase 6: Real Moderation Actions ✅
-- **ModerationService** abstracts Reddit API operations
-- Actions: approve, remove (with reason PM), warn (with message)
-- Decision logging with full audit trail
-- UI feedback: loading state, success/error messages, auto-advance
+■ Real Devvit API calls: `getModQueue()`, `getRules()`, `getComments()`, and `getPostById()`.
+■ Correct handling of `authorName` and `shortName` properties.
+■ Rule context passed directly into Gemini prompts.
 
-### Phase 7: Improved Queue Fetching ✅
-- **ModerationQueueService:** Multi-source aggregation (reported, removed, mod-log, spam)
-- **Testing Mode** (`?testing=true`): Fetch latest posts for small subreddits
-- **Verbose Logging** (`?verbose=true`): Debug source tracking and deduplication
-- Auto-deduplication and unified queue interface
+### Notes and Decision Logging
 
-### Phase 8: User History & Reputation ✅
-- **UserService:** Fetch karma, account age, suspension status, moderation history
-- **Risk Scoring:** Account age + karma + removal history = risk level (low/medium/high)
-- **UserHistory Component:** Display reputation card with recent removals, risk badge
-- Integrated into main moderation flow for quick context
+■ Post-level notes with create/read/update/delete support.
+■ Moderation decision history with timestamps and moderator attribution.
+■ Persistent KV Store keys: `notes:${postId}` and `decisions:${postId}`.
+■ NotesPanel uses a tabbed Notes | History interface.
 
----
+### Mod Tools Integration
 
-## Phase 9: Spam/Repost Detection via Heuristics ✅ **COMPLETED**
+■ "Open CoPilot" menu entry in Subreddit Mod Tools.
+■ Persistent dashboard post stored in Redis.
+■ Splash screen with community-contextual welcome.
+■ Direct navigation into the moderation interface.
 
-✅ **SpamDetectionService** (`services/spam-detection.ts`)
-  - **Spam Keywords:** Detects common spam patterns (crypto, free money, work from home, etc.)
-  - **Link Analysis:** Flags excessive links and suspicious URL shorteners
-  - **Text Patterns:** Detects repeated characters, excessive caps, excessive punctuation
-  - **Confidence Scoring:** 0-100 score with actionable reasons
-  - Distinguishes: spam, repost, suspicious, clean
+### Real Moderation Actions
 
-✅ **Repost Detection** 
-  - Compares against recent subreddit posts (lookback period: 30 days)
-  - **Exact Title Matching:** Detects identical post titles
-  - **Similarity Analysis:** Jaccard word-level comparison (75%+ threshold)
-  - **URL Deduplication:** Flags duplicate URLs
-  - Configurable lookback window and sensitivity
+■ ModerationService wraps Reddit API operations.
+■ Actions supported: approve, remove with reason PM, and warn with message.
+■ Full decision logging with audit trail.
+■ UI feedback includes loading states, success/error messages, and auto-advance.
 
-✅ **Spam Check API Endpoint**
-  - `POST /api/spam-check` → Analyze post for spam/repost
-  - Input: title, body, author, url, postId
-  - Output: SpamIndicator with type, confidence, reasons, score
-  - Full error handling with graceful fallbacks
+### Improved Queue Fetching
 
-✅ **SpamIndicators UI Component** (`SpamIndicators.tsx`)
-  - Color-coded alerts: spam (red), repost (orange), suspicious (yellow), clean (hidden)
-  - Shows confidence percentage and detailed reasons
-  - Contextual guidance for moderators (remove/check history/review)
-  - Icons for visual recognition (AlertTriangle, Repeat2, Shield)
-  - Loading and error states
-  - Dark mode support
+■ ModerationQueueService aggregates reported items, removed items, mod-log entries, and spam sources.
+■ Testing Mode (`?testing=true`) fetches latest posts for small subreddits.
+■ Verbose Logging (`?verbose=true`) helps debug source tracking and deduplication.
+■ Auto-deduplication and a unified queue interface.
 
-✅ **Integration into Moderation Flow**
-  - SpamIndicators display between AI Analysis and Comments
-  - Only shows for non-clean classifications (reduces noise)
-  - Automatic analysis on post load
-  - No impact on existing features
+### User History and Reputation
 
-✅ **Bug Fixes & UX Improvements**
-  - **User Data Loading:** Fixed UserService to handle Devvit API limitations
-    - Fallback to post history when full user API unavailable
-    - Graceful degradation with zero-defaults
-  - **Post Links:** Added Reddit post URLs to post titles
-    - Subreddit name now included in ModQueueItem
-    - QueueCarousel titles now link to original posts
-    - Clickable links for quick verification
+■ UserService fetches karma, account age, suspension status, and moderation history.
+■ Risk scoring combines account age, karma, and removal history into low / medium / high tiers.
+■ UserHistory component shows the reputation card and recent removals.
+■ User context is integrated into the main moderation flow for faster decisions.
 
----
+## Phase 9: Spam and Repost Detection
 
-## Phase 10: Performance Optimization & Prompt Tuning ✅ **COMPLETE (FIXED)**
+■ SpamDetectionService detects common spam patterns such as crypto, free money, work from home, excessive links, suspicious URL shorteners, repeated characters, caps-heavy text, and excessive punctuation.
+■ Repost detection compares against recent subreddit posts using a 30-day lookback, exact title matching, Jaccard similarity, and URL deduplication.
+■ Confidence scoring produces a 0-100 score and distinguishes spam, repost, suspicious, and clean.
+■ API endpoint: `POST /api/spam-check` with title, body, author, url, and postId input.
+■ SpamIndicators UI shows color-coded alerts, confidence percentage, reasons, and moderation guidance.
+■ The spam panel appears between AI Analysis and Comments only when the item is not clean.
+■ User data loading now degrades gracefully when full Devvit profile data is unavailable.
+■ Post links are included in queue titles for quick verification.
 
-✅ **Analysis Caching** (`AnalysisCacheService`)
-  - Caches AI analysis results for 24 hours with hash-based keys
-  - Prevents duplicate API calls for identical post content
-  - Graceful error handling (caching failures don't break analysis)
-  - Used automatically in `AIService.analyzePost()`
+## Phase 10: Performance Optimization and Prompt Tuning
 
-✅ **Queue Prioritization** (`QueuePrioritizationService`)
-  - Calculates priority scores (0-100) based on:
-    - Report count (0-30 points)
-    - User risk level (0-35 points)
-    - Spam/repost confidence (0-25 points)
-    - Post recency (0-10 points bonus)
-  - Assigns urgency: critical (≥60), high (≥40), medium (≥20), low (<20)
-  - Generates reason summaries for each item
-  - Endpoint: `GET /api/priority-queue`
+■ AnalysisCacheService caches AI analysis results for 24 hours using hash-based keys.
+■ QueuePrioritizationService scores items from 0-100 using report count, user risk, spam/repost confidence, and recency.
+■ Priority levels are critical, high, medium, and low, with reason summaries for each item.
+■ Priority queue endpoint: `GET /api/priority-queue`.
+■ Priority Indicator UI shows urgency badges, score, and detailed reasons.
+■ SimilarCasesService stores removal records and finds similar posts by title, body, and rule match.
+■ Similar cases threshold is greater than 40% similarity, with 50 records per rule and 90-day retention.
+■ Similar cases endpoint: `POST /api/similar-cases`.
+■ Similar Cases UI shows past removals, the removal reason, similarity percentage, and links to originals when available.
+■ Removal decisions now store similar-case records automatically.
+■ PromptTemplates use structured JSON prompts for consistent Gemini responses.
 
-✅ **Priority Indicator UI**
-  - Displays in moderation hub with color-coded urgency badges
-  - Shows score, urgency level, and detailed reasons
-  - Responsive, dark-mode compatible
+## Heuristic Model Details
 
-✅ **Similar Cases Infrastructure** (`SimilarCasesService`)
-  - Stores removal records by rule and keywords
-  - Finds similar posts by title/body/rule match (>40% threshold)
-  - Calculates similarity percentages (0-100)
-  - Keeps 50 records per rule, 90-day retention
-  - Endpoint: `POST /api/similar-cases`
-
-✅ **Similar Cases UI**
-  - Component displays similar past removals with reasons
-  - Shows removal reason and similarity percentage
-  - Links to original posts when available
-
-✅ **Similar Cases Data Collection (BUG FIX)**
-  - **Fixed:** `SimilarCasesService.storeRemovalRecord()` now properly called on removal
-  - Enhanced `LogDecisionRequest` to include: postTitle, postBody, postAuthor, violatedRules
-  - When action = 'remove', decision endpoint stores removal record for future matching
-  - Extracts primary violated rule from AI analysis
-  - Graceful fallback if storage fails (doesn't block decision logging)
-  - Similar cases database now populates automatically on each removal
-
-✅ **Optimized Prompts** (`PromptTemplates`)
-  - Structured JSON prompts for consistent Gemini responses
-  - Post analysis: confidence scoring + rule citation + reasoning
-  - Removal reason: clear, user-friendly messages
-  - Emphasis on clarity and specific guidance
-
----
-
-**Key Features:**
-- Heuristic-based detection (no ML required, fast processing)
-- Multi-factor analysis: keywords, links, text patterns, URL similarity
-- Recent post comparison for repost detection
-- Configurable sensitivity and lookback periods
-- Provides actionable guidance to moderators
-
-**Detection Factors:**
-1. Spam Keywords: 10 points each
-2. Excessive Links: 15 points
-3. Caps Ratio: 10 points if >50%
-4. Repeated Chars: 8 points
-5. URL Shorteners: 12 points
-6. Excessive Punctuation: 8 points
-7. Title Match: 30 points (exact), 15 (75%+ similarity)
-8. URL Duplicate: 25 points
-
-**Thresholds:**
-- Spam: ≥40 score
-- Suspicious: ≥20 score
-- Clean: <20 score
-
----
+■ Heuristic-based detection keeps the system fast and avoids overbuilding ML.
+■ Detection factors: spam keywords, excessive links, caps ratio, repeated characters, URL shorteners, excessive punctuation, title match, and URL duplicate.
+■ Scoring weights: 10, 15, 10, 8, 12, 8, 30 / 15, and 25 points respectively.
+■ Thresholds: spam at 40+, suspicious at 20+, clean below 20.
 
 ## API Endpoints
 
-**Queue & Rules:**
-- `GET /api/modqueue?testing=true&verbose=true` — Multi-source queue aggregation
-- `GET /api/queue-item/:postId` — Post + comments details
-- `GET /api/rules` — Subreddit rules
+### Queue and Rules
 
-**AI Analysis:**
-- `POST /api/analyze` — Gemini analysis with rules context
-- `POST /api/removal-reason` — Generate removal message
+■ `GET /api/modqueue?testing=true&verbose=true` — multi-source queue aggregation.
+■ `GET /api/queue-item/:postId` — post and comment details.
+■ `GET /api/rules` — subreddit rules.
 
-**Moderation Actions:**
-- `POST /api/actions/approve` — Approve post
-- `POST /api/actions/remove` — Remove with reason PM
-- `POST /api/actions/warn` — Send user warning
+### AI Analysis
 
-**Notes & Decisions:**
-- `GET /api/notes/:postId` — Fetch post notes
-- `POST /api/notes` — Create note
-- `GET /api/decisions/:postId` — Fetch decision log
-- `POST /api/decisions` — Log moderation action
+■ `POST /api/analyze` — Gemini analysis with rule context.
+■ `POST /api/removal-reason` — generate a removal message.
 
-**User:**
-- `GET /api/user/:username` — User reputation + moderation history
+### Moderation Actions
 
-**Spam & Repost Detection:**
-- `POST /api/spam-check` — Analyze post for spam/repost patterns
+■ `POST /api/actions/approve` — approve post.
+■ `POST /api/actions/remove` — remove with reason PM.
+■ `POST /api/actions/warn` — send user warning.
 
----
+### Notes and Decisions
+
+■ `GET /api/notes/:postId` — fetch post notes.
+■ `POST /api/notes` — create note.
+■ `GET /api/decisions/:postId` — fetch decision log.
+■ `POST /api/decisions` — log moderation action.
+
+### User and Safety
+
+■ `GET /api/user/:username` — user reputation and moderation history.
+■ `POST /api/spam-check` — analyze spam and repost patterns.
 
 ## Key Implementation Details
 
-**Real Data Handling:**
-- Devvit API: `authorName` (not `author.name`), `shortName` for rules
-- PostId typed as `t3_${string}`
-- Graceful null/undefined handling
-
-**Gemini Integration:**
-- Structured JSON prompts for reliable responses
-- Auto-detects `GOOGLE_API_KEY`
-- Free tier: 60 req/min (sufficient for hackathon)
-- Automatic fallback to demo mode on API errors
-
-**KV Store:** `notes:${postId}`, `decisions:${postId}` — atomic JSON operations
-
-**Services:**
-- `AIService`: Provider abstraction (demo/Gemini/OpenAI), context-aware analysis
-- `NotesService`: CRUD + timestamp/attribution
-- `ModerationService`: Approve, remove, warn operations
-- `ModerationQueueService`: Multi-source aggregation, deduplication
-- `UserService`: Reputation + history fetching, risk scoring
-
----
+■ Devvit API handling uses `authorName` instead of `author.name`, `shortName` for rules, and `t3_${string}` post IDs.
+■ Gemini integration auto-detects `GOOGLE_API_KEY` and falls back to demo mode on errors.
+■ Free tier capacity of 60 requests per minute is sufficient for the hackathon use case.
+■ KV Store keys are `notes:${postId}` and `decisions:${postId}` with atomic JSON operations.
+■ Services include AIService, NotesService, ModerationService, ModerationQueueService, and UserService.
+■ AIService supports demo, Gemini, and OpenAI providers; OpenAI is currently a placeholder path.
 
 ## Testing
 
-**Build Status:** ✅ Clean compile (strict TypeScript), full type safety
-
-**Testing Modes:**
-1. **Normal Mode:** Real moderation queue (reports, removals, mod-log)
-2. **Testing Mode** (`?testing=true`): Latest posts from subreddit (for small/private subreddits)
-3. **Verbose Logging** (`?verbose=true`): Debug source tracking
-
-**Testing Tips:**
-- Use Testing Mode for reliable testing without manual reports
-- Append params to dashboard URL: `...&testing=true&verbose=true`
-- Check browser console for `[ModerationQueue]` and `[API]` logs
-- Test account: Report posts or use mod-log removals for real queue
-
----
+■ Build status: clean compile with strict TypeScript and full type safety.
+■ Normal mode uses the real moderation queue from reports, removals, and mod-log.
+■ Testing Mode (`?testing=true`) uses latest subreddit posts for small or private subreddits.
+■ Verbose Logging (`?verbose=true`) prints source tracking and deduplication details.
+■ Testing tips: use Testing Mode for reliable testing, append `&testing=true&verbose=true`, and watch the browser console for `[ModerationQueue]` and `[API]` logs.
+■ For live data, report posts or use mod-log removals.
 
 ## Known Limitations
 
-- **Private Subreddit Auth:** App requires mod permissions for real queue
-- **AI Accuracy:** Gemini 1.5 Flash occasionally misses nuanced violations
-- **Performance:** Initial queue load depends on subreddit modqueue size
-- **UI:** Limited to Devvit custom post components
-
-
-
----
+■ Private subreddit auth requires mod permissions for the real queue.
+■ Gemini 1.5 Flash can still miss nuanced violations.
+■ Initial queue load depends on subreddit modqueue size.
+■ UI scope is limited to Devvit custom post components.
 
 ## Project Status
 
-**Current Phase:** 10 - Performance Optimization & Prompt Tuning ✅ **COMPLETE**
+■ Current phase: 10 - Performance Optimization & Prompt Tuning, complete.
+■ Build: clean and production-ready.
+■ Features: MVP complete with real Reddit integration, robust queue fetching, user context, spam detection, and Phase 10 tooling.
+■ Code quality: strict TypeScript, modular structure, and documented services.
+■ UI/UX: professional, responsive, context-aware, and feedback-rich.
+■ AI: real Gemini integration with rule-aware analysis and caching.
+■ Moderation: full approve / remove / warn support.
+■ Testing: reliable multi-source queue plus Testing Mode.
+■ Safety: heuristic-based spam and repost detection.
+■ Performance: analysis caching and priority queue reduce repeated work.
+■ Consistency: similar-cases storage improves moderation consistency across the team.
 
-**Build:** Clean, production-ready
-**Features:** MVP complete + real Reddit integration + robust queue fetching + user context + spam detection + Phase 10 complete
-**Code Quality:** TypeScript strict, modular, well-documented
-**UI/UX:** Professional, responsive, real-time feedback, context-aware
-**AI:** Real Gemini integration with rule-aware analysis + caching
-**Moderation:** Full Reddit API integration (approve/remove/warn)
-**Testing:** Reliable multi-source queue + Testing Mode for development
-**User Context:** Complete reputation and history display
-**Safety:** Heuristic-based spam/repost detection
-**Performance:** Analysis caching + priority queue (60 req/min → effectively unlimited)
-**Consistency:** Similar cases database enables consistent moderation decisions
+### Phase 10 Status
 
-**Phase 10 Status:**
-- ✅ Caching: Reduces duplicate API calls & API rate limit pressure
-- ✅ Prioritization: Shows urgent items first (reports, risk, spam, recency)
-- ✅ Similar Cases: Now fully functional with automatic data collection on removals
+■ Caching reduces duplicate API calls and rate-limit pressure.
+■ Prioritization surfaces the most urgent items first.
+■ Similar Cases now works with automatic data collection on removals.
 
-**Performance Impact:**
-- Analysis caching: ~90% reduction in duplicate API calls for repeat posts
-- Priority queue: Focuses moderator attention on high-urgency items
-- Similar cases: Ensures consistency in moderation decisions across the team
+### Performance Impact
 
-**Data Flow for Similar Cases:**
-1. Moderator reviews post → AI analysis calculates violatedRules
-2. Moderator clicks "Remove" → ModerationService.removeItem() executes removal
-3. Decision is logged → /api/decisions endpoint receives post details + rules
-4. On removal action → SimilarCasesService.storeRemovalRecord() stores the removal
-5. Next moderator reviews similar post → Similar cases component shows precedent
-6. Pattern matching prevents inconsistent decisions
+■ Analysis caching cuts duplicate API calls for repeat posts by roughly 90%.
+■ Priority queue helps moderators focus on high-urgency items.
+■ Similar cases improve consistency in team moderation decisions.
+
+### Similar Cases Flow
+
+1. Moderator reviews a post and AI analysis calculates violatedRules.
+2. Moderator clicks Remove and ModerationService.removeItem() executes the action.
+3. The decision is logged through `/api/decisions` with post details and rules.
+4. On removal, SimilarCasesService.storeRemovalRecord() saves the case.
+5. The next similar review shows precedent in the Similar Cases component.
+6. Pattern matching helps prevent inconsistent decisions.

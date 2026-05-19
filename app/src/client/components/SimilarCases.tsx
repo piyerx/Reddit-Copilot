@@ -57,10 +57,10 @@ export const SimilarCases: React.FC<SimilarCasesProps> = ({
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-        <div className="flex items-center gap-2">
-          <div className="animate-spin">⏳</div>
-          <p className="text-xs text-gray-600 dark:text-gray-400">Finding similar cases...</p>
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+        <div className="flex items-center gap-3">
+          <div className="h-4 w-4 rounded-full loading-shimmer" />
+          <div className="h-3.5 w-36 rounded-full loading-shimmer" />
         </div>
       </div>
     );
@@ -71,48 +71,48 @@ export const SimilarCases: React.FC<SimilarCasesProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30 p-3">
+    <div className="rounded-xl border border-blue-200 bg-blue-50/90 p-3 shadow-sm dark:border-blue-800 dark:bg-slate-950/60">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="mb-3 flex items-center gap-2">
         <Repeat2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        <h4 className="text-sm font-bold text-blue-900 dark:text-blue-300">
+        <h4 className="text-sm font-semibold text-slate-950 dark:text-slate-100">
           Similar Cases Found ({cases.length})
         </h4>
       </div>
 
       {/* Cases List */}
-      <div className="space-y-2 max-h-48 overflow-y-auto">
+      <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
         {cases.map((similarCase) => (
           <div
             key={similarCase.id}
-            className="bg-white dark:bg-gray-800 rounded p-2.5 border-l-3 border-blue-400"
+            className="rounded-xl border-l-4 border-blue-400 bg-white/90 p-3 dark:bg-slate-900/80"
           >
             {/* Title & Author */}
-            <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
+            <p className="mb-1 line-clamp-2 text-xs font-semibold text-slate-950 dark:text-slate-100">
               {similarCase.title}
             </p>
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1.5">
+            <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>u/{similarCase.author}</span>
               <div className="flex items-center gap-1">
                 <Repeat2 className="w-3 h-3" />
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-blue-600 dark:text-blue-300">
                   {similarCase.similarity}% match
                 </span>
               </div>
             </div>
 
             {/* Rule & Reason */}
-            <div className="bg-gray-50 dark:bg-gray-700 rounded p-1.5 text-xs">
-              <p className="text-gray-700 dark:text-gray-300 font-medium">
+            <div className="rounded-lg bg-slate-50 p-2 text-xs dark:bg-slate-800/70">
+              <p className="font-medium text-slate-700 dark:text-slate-200">
                 Rule: {similarCase.ruleViolated}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
+              <p className="mt-0.5 line-clamp-2 text-slate-500 dark:text-slate-400">
                 {similarCase.removalReason}
               </p>
             </div>
 
             {/* Date */}
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 flex items-center gap-1">
+            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-500">
               <Calendar className="w-3 h-3" />
               {new Date(similarCase.removedAt).toLocaleDateString()}
             </p>
@@ -121,7 +121,7 @@ export const SimilarCases: React.FC<SimilarCasesProps> = ({
       </div>
 
       {/* Footer guidance */}
-      <p className="text-xs text-blue-700 dark:text-blue-300 mt-2 p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded">
+      <p className="mt-2 rounded-lg bg-blue-100/80 p-2 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
         These posts were removed for similar reasons. Review to ensure consistent moderation.
       </p>
     </div>

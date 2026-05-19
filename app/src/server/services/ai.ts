@@ -297,8 +297,8 @@ export class AIService {
 
       const prompt = PromptTemplates.getRemovalReasonPrompt(
         postTitle,
-        rules,
-        violatedRules
+        violatedRules,
+        rules.join('\n')
       );
 
       const result = await model.generateContent(prompt);

@@ -43,18 +43,18 @@ export const PriorityIndicator: React.FC<PriorityIndicatorProps> = ({
   }
 
   return (
-    <div className={`rounded-lg border p-3 ${getColorClasses(urgency)}`}>
+    <div className={`rounded-2xl border p-3 shadow-sm ${getColorClasses(urgency)}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {urgency === 'critical' || urgency === 'high' ? (
             <Zap className="w-4 h-4" />
           ) : (
             <AlertCircle className="w-4 h-4" />
           )}
-          <span className="text-xs font-bold">{getUrgencyLabel(urgency)}</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em]">{getUrgencyLabel(urgency)}</span>
         </div>
-        <span className="text-xs font-semibold bg-white dark:bg-gray-900 px-2 py-1 rounded">
+        <span className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] font-semibold dark:border-slate-700 dark:bg-slate-950/60">
           Score: {priorityScore}
         </span>
       </div>
@@ -63,7 +63,7 @@ export const PriorityIndicator: React.FC<PriorityIndicatorProps> = ({
       {reasons.length > 0 && (
         <div className="space-y-1">
           {reasons.map((reason, idx) => (
-            <p key={idx} className="text-xs ml-4">
+            <p key={idx} className="ml-4 text-xs leading-5">
               • {reason}
             </p>
           ))}

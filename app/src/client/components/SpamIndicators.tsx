@@ -114,10 +114,10 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
 
   if (isLoading || loading) {
     return (
-      <div className="rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-        <div className="flex items-center gap-2">
-          <div className="animate-spin">⏳</div>
-          <p className="text-xs text-gray-600 dark:text-gray-400">Scanning for spam/reposts...</p>
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+        <div className="flex items-center gap-3">
+          <div className="h-4 w-4 rounded-full loading-shimmer" />
+          <div className="h-3.5 w-40 rounded-full loading-shimmer" />
         </div>
       </div>
     );
@@ -125,7 +125,7 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+      <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-3 dark:border-amber-800 dark:bg-amber-950/30">
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-300" />
           <div>
@@ -149,12 +149,12 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
   }
 
   return (
-    <div className={`rounded-lg border p-3 ${getTypeColor(analysis.type)}`}>
+    <div className={`rounded-xl border p-3 shadow-sm ${getTypeColor(analysis.type)}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-2 flex items-center gap-2">
         <div className={getTextColor(analysis.type)}>{getIcon(analysis.type)}</div>
         <div className="flex-1">
-          <h4 className={`text-sm font-bold ${getTextColor(analysis.type)}`}>
+          <h4 className={`text-sm font-semibold ${getTextColor(analysis.type)}`}>
             {getLabel(analysis.type)} — {Math.round(analysis.confidence)}% confidence
           </h4>
         </div>
@@ -173,17 +173,17 @@ export const SpamIndicators: React.FC<SpamIndicatorsProps> = ({
 
       {/* Action guidance */}
       {analysis.type === 'spam' && (
-        <p className="text-xs mt-2 text-red-600 dark:text-red-300">
+        <p className="mt-2 text-xs text-red-600 dark:text-red-300">
           Consider removing and warning user. Review removal reason to cite specific violations.
         </p>
       )}
       {analysis.type === 'repost' && (
-        <p className="text-xs mt-2 text-orange-600 dark:text-orange-300">
+        <p className="mt-2 text-xs text-orange-600 dark:text-orange-300">
           Check similar posts to verify. May need removal depending on subreddit repost policy.
         </p>
       )}
       {analysis.type === 'suspicious' && (
-        <p className="text-xs mt-2 text-yellow-600 dark:text-yellow-300">
+        <p className="mt-2 text-xs text-yellow-700 dark:text-yellow-300">
           Review carefully. May have borderline characteristics requiring additional context.
         </p>
       )}

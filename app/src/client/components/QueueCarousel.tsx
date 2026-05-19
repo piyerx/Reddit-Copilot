@@ -32,34 +32,34 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
 
   return (
     <div className="card overflow-hidden">
-      <div className="p-6">
+      <div className="p-4 sm:p-5">
         {/* Post Header */}
-        <div className="mb-4 flex items-start justify-between">
+        <div className="mb-3 flex items-start justify-between gap-4">
           <div className="flex-1">
             {postUrl ? (
               <a
                 href={postUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg font-bold text-blue-600 dark:text-blue-400 hover:underline mb-2 inline-block"
+                className="mb-2 inline-block text-[1.05rem] font-semibold tracking-tight text-slate-950 transition-colors hover:text-blue-600 hover:underline dark:text-slate-50 dark:hover:text-blue-300"
               >
                 {item.title}
               </a>
             ) : (
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="mb-2 text-[1.05rem] font-semibold tracking-tight text-slate-950 dark:text-slate-50">
                 {item.title}
               </h2>
             )}
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Posted by u/{item.author}
             </p>
-            <div className="mt-3 flex gap-6 text-sm text-slate-500 dark:text-slate-400">
-              <span className="font-medium">{item.score} upvotes</span>
-              <span className="font-medium">{item.numComments} comments</span>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800">{item.score} upvotes</span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800">{item.numComments} comments</span>
             </div>
           </div>
           {item.reportCount > 0 && (
-            <span className="ml-4 shrink-0 rounded-full bg-linear-to-r from-red-500 to-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+            <span className="ml-4 shrink-0 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
               {item.reportCount} reports
             </span>
           )}
@@ -67,7 +67,7 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
 
         {/* Post Body */}
         {item.body && (
-          <p className="mb-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          <p className="mb-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
             {item.body}
           </p>
         )}
@@ -76,7 +76,7 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
       {/* Reports */}
       {item.reports.length > 0 && (
         <div className="card-header gradient-bg-orange">
-          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+          <p className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-300">
             <AlertTriangle className="w-4 h-4" />
             Flagged ({item.reportCount})
           </p>
@@ -91,23 +91,23 @@ export const QueueCarousel: React.FC<QueueCarouselProps> = ({
       )}
 
       {/* Navigation */}
-      <div className="card-header bg-slate-50 dark:bg-slate-800/50">
+      <div className="card-header bg-slate-50/80 dark:bg-slate-950/40">
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={onPrevious}
             disabled={!hasPrevious}
-            className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-200 px-4 py-2 text-xs font-semibold text-gray-700 transition-all hover:bg-slate-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <ChevronLeft className="w-4 h-4" />
             Prev
           </button>
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             {currentIndex + 1} / {total}
           </span>
           <button
             onClick={onNext}
             disabled={!hasNext}
-            className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-200 px-4 py-2 text-xs font-semibold text-gray-700 transition-all hover:bg-slate-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Next
             <ChevronRight className="w-4 h-4" />

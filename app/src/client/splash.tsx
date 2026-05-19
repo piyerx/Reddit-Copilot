@@ -4,76 +4,84 @@ import { requestExpandedMode } from '@devvit/web/client';
 import { context } from '@devvit/web/client';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Sparkles } from 'lucide-react';
 
 export const Splash = () => {
   return (
-    <div className="flex relative flex-col justify-center items-center min-h-screen gap-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center gap-4 overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50 to-white px-4 py-4 dark:from-emerald-950 dark:via-slate-950 dark:to-slate-900">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_34%),radial-gradient(circle_at_bottom,rgba(34,197,94,0.12),transparent_28%)] dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.22),transparent_34%),radial-gradient(circle_at_bottom,rgba(34,197,94,0.12),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(16,185,129,0.9)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.9)_1px,transparent_1px)] [background-size:48px_48px] dark:opacity-[0.08]" />
+
       {/* Icon */}
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur-xl opacity-20" />
-        <div className="relative bg-white dark:bg-gray-800 rounded-full p-4 shadow-lg">
-          <Sparkles className="w-10 h-10 text-orange-500 dark:text-orange-400" />
+        <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-xl dark:bg-emerald-300/10" />
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-emerald-200 bg-white/92 p-2.5 shadow-[0_16px_44px_rgba(16,185,129,0.20)] backdrop-blur dark:border-emerald-500/20 dark:bg-slate-950/70">
+          <div className="relative h-full w-full overflow-hidden rounded-full ring-1 ring-emerald-200/80 dark:ring-emerald-400/20">
+            <img
+              src="/modcop_icon_xl.png"
+              alt="ModCoPilot icon"
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </div>
 
       {/* Welcome Message */}
-      <div className="flex flex-col items-center gap-3 max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white">
+      <div className="flex max-w-sm flex-col items-center gap-1.5">
+        <h1 className="text-center text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
           Reddit Mod CoPilot
         </h1>
-        <p className="text-base text-center text-gray-600 dark:text-gray-300">
+        <p className="text-center text-sm leading-5 text-slate-600 dark:text-slate-300">
           AI-powered moderation dashboard for r/{context.subredditName}
         </p>
       </div>
 
       {/* Feature List */}
-      <div className="flex flex-col gap-2 w-full max-w-sm">
-        <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <span>✨</span>
-          <span><strong>Real-time AI Analysis</strong> of posts and comments</span>
+      <div className="flex w-full max-w-xs flex-col gap-1.5">
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-white/80 px-3 py-2 text-xs text-slate-700 shadow-sm dark:border-emerald-500/15 dark:bg-slate-950/40 dark:text-slate-200">
+          <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+          <span className="leading-5"><strong>Real-time AI Analysis</strong> of posts and comments</span>
         </div>
-        <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <span>🚀</span>
-          <span><strong>Auto-generate removal reasons</strong> based on subreddit rules</span>
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-white/80 px-3 py-2 text-xs text-slate-700 shadow-sm dark:border-emerald-500/15 dark:bg-slate-950/40 dark:text-slate-200">
+          <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+          <span className="leading-5"><strong>Auto-generate removal reasons</strong> based on subreddit rules</span>
         </div>
-        <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <span>📝</span>
-          <span><strong>Team coordination</strong> with mod notes and decision logs</span>
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-white/80 px-3 py-2 text-xs text-slate-700 shadow-sm dark:border-emerald-500/15 dark:bg-slate-950/40 dark:text-slate-200">
+          <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+          <span className="leading-5"><strong>Team coordination</strong> with mod notes and decision logs</span>
         </div>
       </div>
 
       {/* CTA Button */}
       <button
-        className="flex items-center justify-center bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-500 dark:to-red-500 text-white font-semibold px-8 py-3 rounded-full cursor-pointer transition-all hover:shadow-lg hover:scale-105 active:scale-95 text-base mt-2"
+        className="mt-1.5 flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(22,163,74,0.24)] transition-all hover:scale-[1.02] hover:shadow-[0_14px_28px_rgba(22,163,74,0.30)] active:scale-95 dark:from-emerald-500 dark:to-green-500"
         onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
       >
         Access Moderation Queue
       </button>
 
       {/* Footer */}
-      <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 text-sm text-gray-600 dark:text-gray-400 opacity-80 hover:opacity-100 transition-opacity duration-300">
-  <span>
-    Created by{" "}
-    <a
-      href="https://github.com/piyerx"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:text-black dark:hover:text-white transition-colors underline underline-offset-2"
-    >
-      PiyerX
-    </a>{" "}
-    &amp;{" "}
-    <a
-      href="https://github.com/paxyz-4"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:text-black dark:hover:text-white transition-colors underline underline-offset-2"
-    >
-      Paxyz
-    </a>
-  </span>
-</footer>
+      <footer className="mt-1 text-xs text-slate-600 opacity-80 transition-opacity duration-300 hover:opacity-100 dark:text-slate-400">
+        <span>
+          Created by{' '}
+          <a
+            href="https://github.com/piyerx"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-slate-950 dark:hover:text-white"
+          >
+            PiyerX
+          </a>{' '}
+          &amp;{' '}
+          <a
+            href="https://github.com/paxyz-4"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-slate-950 dark:hover:text-white"
+          >
+            Paxyz
+          </a>
+        </span>
+      </footer>
     </div>
   );
 };
