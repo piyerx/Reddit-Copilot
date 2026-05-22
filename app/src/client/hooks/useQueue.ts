@@ -16,6 +16,7 @@ interface QueueState {
   loading: boolean;
   analysisLoading: boolean;
   error: string | null;
+  unauthorized: boolean;
   currentIndex: number;
 }
 
@@ -28,6 +29,7 @@ export const useQueue = () => {
     loading: true,
     analysisLoading: false,
     error: null,
+    unauthorized: false,
     currentIndex: 0,
   });
 
@@ -36,6 +38,16 @@ export const useQueue = () => {
     const fetchQueue = async () => {
       try {
         const res = await fetch('/api/modqueue');
+        if (res.status === 403) {
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            unauthorized: true,
+            error: null,
+          }));
+          return;
+        }
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: ModQueueResponse = await res.json();
         if (data.type !== 'modqueue') throw new Error('Unexpected response');
@@ -66,6 +78,16 @@ export const useQueue = () => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const res = await fetch(`/api/queue-item/${postId}`);
+      if (res.status === 403) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          unauthorized: true,
+          error: null,
+        }));
+        return;
+      }
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: QueueItemResponse = await res.json();
       if (data.type !== 'queue-item') throw new Error('Unexpected response');
@@ -99,6 +121,16 @@ export const useQueue = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ item, comments }),
         });
+
+        if (res.status === 403) {
+          setState((prev) => ({
+            ...prev,
+            analysisLoading: false,
+            unauthorized: true,
+            error: null,
+          }));
+          return;
+        }
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: AIAnalysisResponse = await res.json();

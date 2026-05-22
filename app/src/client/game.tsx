@@ -12,6 +12,7 @@ import { UserHistory } from './components/UserHistory';
 import { SpamIndicators } from './components/SpamIndicators';
 import { SimilarCases } from './components/SimilarCases';
 import { PriorityIndicator } from './components/PriorityIndicator';
+import { UnauthorizedScreen } from './components/UnauthorizedScreen';
 import type { PrioritizedItem } from '../shared/api';
 
 export const App = () => {
@@ -23,6 +24,7 @@ export const App = () => {
     loading,
     analysisLoading,
     error,
+    unauthorized,
     currentIndex,
     goToNext,
     goToPrevious,
@@ -36,6 +38,10 @@ export const App = () => {
 
   // Phase 10: Priority & Similar Cases
   const [priorityData, setPriorityData] = useState<PrioritizedItem | null>(null);
+
+  if (unauthorized) {
+    return <UnauthorizedScreen />;
+  }
 
   // Fetch priority data when current item changes
   useEffect(() => {

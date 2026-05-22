@@ -190,3 +190,11 @@ AI-powered moderation assistant for Reddit built with Devvit, Gemini 1.5 Flash, 
 4. On removal, SimilarCasesService.storeRemovalRecord() saves the case.
 5. The next similar review shows precedent in the Similar Cases component.
 6. Pattern matching helps prevent inconsistent decisions.
+
+## Session Update: Moderator Access and UI Polish
+
+■ Added a moderator access guard that checks the current Reddit user against subreddit moderators before serving the app.
+■ Protected the API routes and the Mod Tools menu action so non-mods receive a clean `403` instead of loading the dashboard.
+■ Added a dedicated unauthorized screen with dark-only styling, playful copy, and the `snoo_lock.png` asset.
+■ Updated the splash and queue flow so non-mod users see the same access restriction message instead of the moderation UI.
+■ Kept the overall visual tone darker and softer so the restricted state feels subtle rather than harsh.

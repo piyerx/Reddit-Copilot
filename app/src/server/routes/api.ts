@@ -32,6 +32,7 @@ import { UserService } from '../services/user';
 import { SpamDetectionService } from '../services/spam-detection';
 import { SimilarCasesService } from '../services/similar-cases';
 import { QueuePrioritizationService } from '../services/queue-prioritization';
+import { isCurrentUserModerator } from '../services/access';
 
 type ErrorResponse = {
   status: 'error';
@@ -39,6 +40,33 @@ type ErrorResponse = {
 };
 
 export const api = new Hono();
+
+api.use('*', async (c, next) => {
+  try {
+    const isModerator = await isCurrentUserModerator();
+
+    if (!isModerator) {
+      return c.json<ErrorResponse>(
+        {
+          status: 'error',
+          message: 'Moderator access required',
+        },
+        403
+      );
+    }
+
+    await next();
+  } catch (error) {
+    console.error('Moderator access check failed:', error);
+    return c.json<ErrorResponse>(
+      {
+        status: 'error',
+        message: 'Unable to verify moderator access',
+      },
+      500
+    );
+  }
+});
 
 api.get('/init', async (c) => {
   const { postId } = context;

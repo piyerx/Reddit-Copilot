@@ -2,8 +2,34 @@ import { Hono } from 'hono';
 import type { UiResponse } from '@devvit/web/shared';
 import { context, redis } from '@devvit/web/server';
 import { createPost } from '../core/post';
+import { isCurrentUserModerator } from '../services/access';
 
 export const menu = new Hono();
+
+menu.use('*', async (c, next) => {
+  try {
+    const isModerator = await isCurrentUserModerator();
+
+    if (!isModerator) {
+      return c.json<UiResponse>(
+        {
+          showToast: 'Moderator access required',
+        },
+        403
+      );
+    }
+
+    await next();
+  } catch (error) {
+    console.error('Moderator check failed in menu route:', error);
+    return c.json<UiResponse>(
+      {
+        showToast: 'Unable to verify moderator access',
+      },
+      500
+    );
+  }
+});
 
 // Open CoPilot Moderation Dashboard from Mod Tools
 menu.post('/open-copilot', async (c) => {
