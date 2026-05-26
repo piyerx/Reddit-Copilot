@@ -1,11 +1,12 @@
 > This repository is public for judging and review, but the deployed Reddit app is intentionally moderator-only at runtime. Judges can review the code, architecture, and demo video even if they are not subreddit moderators.
 
+<img width="2000" height="457" alt="RedditCopilot_Banner_Github" src="https://github.com/user-attachments/assets/7c8a264b-cd81-4d7d-a729-38c26ff80917" />
+
 # Reddit Mod Co-Pilot
 
 Reddit Mod Co-Pilot is an AI-assisted moderation workspace that helps subreddit moderators process queue items faster while keeping every final decision human-led. *Built with Devvit, React, TypeScript, and Gemini for the Reddit Mod Tools & Migrated Apps Hackathon 2026.*.
 
 > Created by [PiyerX](https://github.com/piyerx) & [Paxyz](https://github.com/paxyz-4)
-
 
 ## ■ Problem
 
@@ -27,6 +28,14 @@ Moderators often lose time switching between queue details, comments, user conte
 - Similar-cases lookup to improve consistency.
 - Notes and moderation decision timeline per post.
 - Moderator-only access guard and dedicated unauthorized screen.
+
+## ■ UI Screenshots
+
+<p align=center>
+  <img width="700" alt="redditCopilot_PNG" src="https://github.com/user-attachments/assets/a000f6b9-f520-4601-b693-c38a6eff5fc0" /> 
+  <br><br>
+  <img width="1897" height="1737" alt="redditCopilot_Screenshots_NEW" src="https://github.com/user-attachments/assets/8043b297-13a9-4dae-8323-bae7ca15c5fd" />
+</p>
 
 ## ■ End-to-End Flow
 
