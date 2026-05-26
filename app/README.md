@@ -1,37 +1,60 @@
-# Reddit ModCopilot
+# Reddit Mod Co-Pilot
 
-AI-powered moderation assistance for Reddit moderators and communities. Created by [PiyerX](https://github.com/piyerx) & [Paxyz](https://github.com/paxyz-4)
+AI-assisted moderation workspace built for Reddit moderators.
+Created by [PiyerX](https://github.com/piyerx) & [Paxyz](https://github.com/paxyz-4)
 
-> **⚠️ Warning**: This project is in Early Access stage at this time.
 
-## ■ What It Does
+## ■ What Mod Co-Pilot Does
 
-ModCoPilot helps moderators review posts faster by turning a busy queue into a clear, context-aware workflow.
+Reddit Mod Co-Pilot helps moderators process queue items faster by combining:
 
-- Summarizes flagged posts and comments in plain language
-- Highlights likely rule violations and why they matter
-- Suggests next actions such as approve, remove, warn, or escalate
-- Stores mod notes and decision history for team context
-- Generates polite removal reasons in one click
+* AI-powered summaries
+* Rule-aware moderation assistance
+* Spam and repost detection
+* Priority scoring
+* Similar-case lookup
+* Notes and moderation history
+* One-click moderation actions
 
-## ■ Why It Helps
+All inside one compact workflow.
 
-Moderation often means repeated reviews, missing context, and lots of manual typing.
 
-ModCoPilot is designed to:
+## ■ Why It Matters
 
-- save time on repetitive queue work
-- improve consistency across moderators
-- make decisions easier to explain to users
-- keep humans in control while AI assists with context
+Moderation is repetitive, context-heavy, and time-sensitive.
+
+Mod Co-Pilot reduces:
+
+* context switching
+* repetitive review work
+* inconsistent moderation decisions
+
+while keeping every final decision human-led.
+
+
+## ■ Key Features
+
+* AI summaries with confidence scoring
+* Suggested moderation actions
+* Spam and repost heuristics
+* User reputation and risk signals
+* Similar-case matching for consistency
+* Moderator-only protected access
+* Real Reddit moderation integration
+
 
 ## ■ Built With
 
-- Devvit
-- TypeScript
-- React
-- Gemini / OpenAI
+* Devvit
+* React 19
+* TypeScript
+* Hono
+* Gemini 1.5 Flash
+* Devvit KV Store
 
-## ■ Built For
 
-Reddit Mod Tools Hackathon 2026
+## ■ Hackathon Project
+
+Built for the Reddit Mod Tools & Migrated Apps Hackathon 2026.
+
+Current hackathon deployment uses a shared Gemini backend key with caching and rate-limit reduction. Production scaling would support configurable model routing and tenant-specific API configuration.
