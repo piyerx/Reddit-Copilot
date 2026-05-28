@@ -2,7 +2,19 @@
 
 <img width="2000" height="457" alt="RedditCopilot_Banner_Github" src="https://github.com/user-attachments/assets/7c8a264b-cd81-4d7d-a729-38c26ff80917" />
 
-# Reddit Mod Co-Pilot
+<p align="center">
+  <a href="https://youtu.be/SzOrtWHZk4A">
+    <img src="https://img.shields.io/badge/Watch-Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white&labelColor=111827" />
+  </a>
+
+  <a href="https://devpost.com/software/reddit-modcopilot">
+    <img src="https://img.shields.io/badge/View-Project_Page-6ee7b7?style=for-the-badge&logo=devpost&logoColor=white&labelColor=111827" />
+  </a>
+</p>
+
+<p align="center">
+  <h1 align="center">Reddit Mod Copilot</h1>
+</p>
 
 Reddit Mod Co-Pilot is an AI-assisted moderation workspace that helps subreddit moderators process queue items faster while keeping every final decision human-led. *Built with Devvit, React, TypeScript, and Gemini for the Reddit Mod Tools & Migrated Apps Hackathon 2026.*.
 
